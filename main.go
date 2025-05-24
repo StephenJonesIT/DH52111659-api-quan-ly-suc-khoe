@@ -1,0 +1,63 @@
+package main
+
+import (
+	"DH52111659-api-quan-ly-suc-khoe/config"
+	"DH52111659-api-quan-ly-suc-khoe/internal/handlers"
+	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
+	"DH52111659-api-quan-ly-suc-khoe/internal/services"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "DH52111659-api-quan-ly-suc-khoe/docs" 
+	"github.com/gin-gonic/gin"
+)
+
+// @title Healthy Service API Document
+// @version 1.0
+// @description List APIs of Healthy Management Service
+// @termsOfService http://swagger.io/terms/
+
+// @host 127.0.0.1:9000
+// @BasePath /api/v1
+// @schemes http https
+func main() {
+	config.LoadConfig()
+	repositories.ConnectDB()
+	redis, err := repositories.NewRedisStore()
+	if err != nil {
+		panic(err)
+	}
+	
+	// 3. Khởi tạo router
+	gin.SetMode(gin.DebugMode)
+	router := gin.Default()
+	router.Use(gin.Logger()) // Log requests
+	router.Use(gin.Recovery()) // Recover from panics and log them
+
+	// 4. Khởi tạo các service và handler
+	accountRepo := repositories.NewAccountRepoImpl(repositories.DB)
+	accountService := services.NewAccountServiceImpl(accountRepo, redis)
+	accountHandler := handlers.NewAccountHandler(accountService)
+
+	// 5. Đăng ký các route
+	registerRouter(router, accountHandler)
+
+	// 6. Khởi động server
+	if err := router.Run(":"+config.AppConfig.GinPort); err != nil {
+		panic(err)
+	}
+}
+
+func registerRouter(router *gin.Engine, accountHandler *handlers.AccountHandler) {
+	// Tạo một nhóm router cho API
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	api := router.Group("/api/v1")
+	{
+		// Đăng ký các route cho tài khoản
+		authGroup := api.Group("/auth")
+		{
+			authGroup.POST("/register", accountHandler.RegisterAccountHandler)
+			authGroup.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
+		}
+	}
+}
