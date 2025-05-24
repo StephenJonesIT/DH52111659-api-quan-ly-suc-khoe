@@ -8,6 +8,8 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/utils"
 	"context"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type AccountService interface {
@@ -15,15 +17,16 @@ type AccountService interface {
 	VerifyOTP(ctx context.Context, toEmail, otp string, isVerified bool) (bool, error)
 	Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error)
 	ForgotPassowrd(ctx context.Context, email string) (bool, error)
-	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) (error)
-	ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) (error)
+	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) error
+	ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) error
+	RefreshToken(ctx context.Context, requestRefreshToken *common.RequestRefreshToken) (string, error)
 }
 
 type AccountServiceImpl struct {
 	accountRepository repositories.AccountRepository
 	redisStore        repositories.RedisStore
 	emailConfig       EmailConfig
-	tokenService	  utils.TokenService
+	tokenService      utils.TokenService
 }
 
 func NewAccountServiceImpl(accountRepo repositories.AccountRepository, redis repositories.RedisStore) *AccountServiceImpl {
@@ -86,9 +89,9 @@ func (s *AccountServiceImpl) VerifyOTP(ctx context.Context, toEmail, otp string,
 	if !isVerified {
 		isVerified = true
 		if err := s.accountRepository.Update(
-			ctx, 
-			map[string]interface{}{"email":toEmail}, 
-			map[string]interface{}{"is_verified": isVerified,}); err != nil {
+			ctx,
+			map[string]interface{}{"email": toEmail},
+			map[string]interface{}{"is_verified": isVerified}); err != nil {
 			return false, fmt.Errorf("lỗi khi cập nhật trạng thái tài khoản: %w", err)
 		}
 	}
@@ -96,7 +99,7 @@ func (s *AccountServiceImpl) VerifyOTP(ctx context.Context, toEmail, otp string,
 	return result, nil
 }
 
-func(s *AccountServiceImpl) Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error){
+func (s *AccountServiceImpl) Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error) {
 	account, err := s.accountRepository.GetByEmail(ctx, loginRequest.Email)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
@@ -123,10 +126,10 @@ func(s *AccountServiceImpl) Login(ctx context.Context, loginRequest *common.Requ
 	return account, accessToken, refreshToken, nil
 }
 
-func(s *AccountServiceImpl) ForgotPassowrd(ctx context.Context, email string) (bool, error){
+func (s *AccountServiceImpl) ForgotPassowrd(ctx context.Context, email string) (bool, error) {
 	// Check if the account exists
 	account, err := s.accountRepository.GetByEmail(ctx, email)
-	
+
 	if err != nil {
 		return false, fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
 	}
@@ -144,7 +147,7 @@ func(s *AccountServiceImpl) ForgotPassowrd(ctx context.Context, email string) (b
 	return true, nil
 }
 
-func(s *AccountServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) (error){
+func (s *AccountServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) error {
 	// Check if the account exists
 	account, err := s.accountRepository.GetByEmail(ctx, resetPasswordRequest.Email)
 	if err != nil {
@@ -163,8 +166,8 @@ func(s *AccountServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequ
 
 	// Update the account's password
 	if err := s.accountRepository.Update(
-		ctx, 
-		map[string]interface{}{"email": resetPasswordRequest.Email}, 
+		ctx,
+		map[string]interface{}{"email": resetPasswordRequest.Email},
 		map[string]interface{}{"password_hash": hashedPassword},
 	); err != nil {
 		return fmt.Errorf("lỗi khi cập nhật mật khẩu: %w", err)
@@ -173,7 +176,7 @@ func(s *AccountServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequ
 	return nil
 }
 
-func(s *AccountServiceImpl) ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) (error){
+func (s *AccountServiceImpl) ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) error {
 	// Get the account by ID
 	account, err := s.accountRepository.GetAccountById(ctx, id)
 	if err != nil {
@@ -192,12 +195,42 @@ func(s *AccountServiceImpl) ChangePassword(ctx context.Context, id string, chang
 
 	// Update the account's password
 	if err := s.accountRepository.Update(
-		ctx, 
-		map[string]interface{}{"id": id}, 
+		ctx,
+		map[string]interface{}{"id": id},
 		map[string]interface{}{"password_hash": hashedPassword},
 	); err != nil {
 		return fmt.Errorf("lỗi khi cập nhật mật khẩu: %w", err)
 	}
 
 	return nil
+}
+
+func (s *AccountServiceImpl) RefreshToken(ctx context.Context, requestRefreshToken *common.RequestRefreshToken) (string, error) {
+	// Verify the refresh token
+	account, err := s.tokenService.VerifyToken(requestRefreshToken.RefreshToken)
+	if err != nil {
+		return "", fmt.Errorf("lỗi khi xác thực refresh token: %w", err)
+	}
+
+	// If the account is nil, it means the token is invalid or expired
+	if account == nil {
+		return "", fmt.Errorf("refresh token không hợp lệ hoặc đã hết hạn")
+	}
+
+	var accountTemp models.Account
+	// If the account is nil, try to get it by ID
+	parsedUUID, err := uuid.Parse(account.ID)
+	if err != nil {
+		return "", fmt.Errorf("lỗi khi chuyển đổi ID: %w", err)
+	}
+	accountTemp.ID = parsedUUID
+	accountTemp.Role = account.Role
+
+	// Generate new access and refresh tokens
+	newAccessToken, _, err := s.tokenService.GenerateTokens(accountTemp)
+	if err != nil {
+		return "", fmt.Errorf("lỗi khi tạo token mới: %w", err)
+	}
+
+	return newAccessToken, nil
 }

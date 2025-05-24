@@ -59,6 +59,7 @@ func registerRouter(router *gin.Engine, accountHandler *handlers.AccountHandler)
 		// Đăng ký các route cho tài khoản
 		authGroup := api.Group("/auth")
 		{
+			authGroup.POST("/refresh-token", accountHandler.RefreshTokenHandler)
 			authGroup.POST("/register", accountHandler.RegisterAccountHandler)
 			authGroup.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
 			authGroup.POST("/login", accountHandler.LoginHandler)

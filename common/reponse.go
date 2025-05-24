@@ -14,6 +14,10 @@ type ResponseLogin struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type ResponseAccessToken struct {
+	AccessToken string `json:"access_token"`
+}
+
 func NewResponseNormal(message string, data interface{}) *ResponseNormal {
 	return &ResponseNormal{
 		Message: message,
@@ -50,5 +54,11 @@ func NewResponseForgotPassword(message, email string, result bool) *ResponseNorm
 		Message: message,
 		Email:   email,
 		Result:  result,
+	}
+}
+
+func NewResponseAccessToken(accessToken string) *ResponseAccessToken {
+	return &ResponseAccessToken{
+		AccessToken: accessToken,
 	}
 }

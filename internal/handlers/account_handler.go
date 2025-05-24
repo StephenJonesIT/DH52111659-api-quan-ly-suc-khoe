@@ -211,7 +211,8 @@ func(h *AccountHandler) ResetPasswordHandler(ctx *gin.Context){
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body common.RequestLogin true "Change password request information"
+// @Param Authorization header string true "Bearer token for authentication"
+// @Param request body common.RequestChangePassword true "Change password request information"
 // @Success 200 {object} common.ResponseNormal{result=bool} "Password changed successfully"
 // @Failure 400 {object} common.ResponseError "Invalid request body"
 // @Failure 401 {object} common.ResponseError "Token must be in Bearer format"
@@ -242,4 +243,37 @@ func(h *AccountHandler) ChangePasswordHandler(ctx *gin.Context){
 	}
 
 	ctx.JSON(http.StatusOK, common.NewResponseResult("Password changed successfully", true))
+}
+
+
+// RefreshTokenHandler godoc
+// @Summary Refresh access token
+// @Description Refresh access token using refresh token
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body common.RequestRefreshToken true "Refresh token request information"
+// @Success 200 {object} common.ResponseAccessToken
+// @Failure 400 {object} common.ResponseError "Invalid request body"
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/refresh-token [post]
+func(h *AccountHandler) RefreshTokenHandler(ctx *gin.Context) {
+	var request common.RequestRefreshToken
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	accessToken,  err := h.accountService.RefreshToken(ctx, &request)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseAccessToken(accessToken))
 }

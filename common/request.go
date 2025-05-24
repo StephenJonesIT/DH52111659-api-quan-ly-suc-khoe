@@ -28,3 +28,7 @@ type RequestForgotPassword struct {
 type RequestChangePassword struct {
 	NewPassword string `json:"new_password" validate:"required,min=8,max=100"`
 }
+
+type RequestRefreshToken struct {
+	RefreshToken string `json:"refresh_token" validate:"required"`
+}
