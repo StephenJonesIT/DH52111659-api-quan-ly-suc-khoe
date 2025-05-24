@@ -2,13 +2,16 @@ package main
 
 import (
 	"DH52111659-api-quan-ly-suc-khoe/config"
+	_ "DH52111659-api-quan-ly-suc-khoe/docs"
 	"DH52111659-api-quan-ly-suc-khoe/internal/handlers"
+	"DH52111659-api-quan-ly-suc-khoe/internal/middleware"
 	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
+	"DH52111659-api-quan-ly-suc-khoe/utils"
+
+	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "DH52111659-api-quan-ly-suc-khoe/docs" 
-	"github.com/gin-gonic/gin"
 )
 
 // @title Healthy Service API Document
@@ -60,6 +63,11 @@ func registerRouter(router *gin.Engine, accountHandler *handlers.AccountHandler)
 			authGroup.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
 			authGroup.POST("/login", accountHandler.LoginHandler)
 			authGroup.POST("/forgot-password", accountHandler.ForgotPasswordHandler)
+			authGroup.POST("/verify-otp", accountHandler.VerifyOTPHandler)
+			authGroup.POST("/reset-password", accountHandler.ResetPasswordHandler)
+			
+			authGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
+			authGroup.POST("/change-password", accountHandler.ChangePasswordHandler)
 		}
 	}
 }

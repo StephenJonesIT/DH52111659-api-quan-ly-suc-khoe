@@ -24,3 +24,7 @@ type RequestLogin struct {
 type RequestForgotPassword struct {
 	Email string `json:"email" validate:"required,email"`
 }
+
+type RequestChangePassword struct {
+	NewPassword string `json:"new_password" validate:"required,min=8,max=100"`
+}

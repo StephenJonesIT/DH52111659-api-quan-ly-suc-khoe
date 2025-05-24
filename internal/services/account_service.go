@@ -15,6 +15,8 @@ type AccountService interface {
 	VerifyOTP(ctx context.Context, toEmail, otp string, isVerified bool) (bool, error)
 	Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error)
 	ForgotPassowrd(ctx context.Context, email string) (bool, error)
+	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) (error)
+	ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) (error)
 }
 
 type AccountServiceImpl struct {
@@ -140,4 +142,62 @@ func(s *AccountServiceImpl) ForgotPassowrd(ctx context.Context, email string) (b
 	}
 
 	return true, nil
+}
+
+func(s *AccountServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) (error){
+	// Check if the account exists
+	account, err := s.accountRepository.GetByEmail(ctx, resetPasswordRequest.Email)
+	if err != nil {
+		return fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
+	}
+
+	if account == nil {
+		return fmt.Errorf("tài khoản không tồn tại")
+	}
+
+	// Hash the new password
+	hashedPassword, err := utils.HashPassword(resetPasswordRequest.Password)
+	if err != nil {
+		return fmt.Errorf("lỗi khi mã hóa mật khẩu: %w", err)
+	}
+
+	// Update the account's password
+	if err := s.accountRepository.Update(
+		ctx, 
+		map[string]interface{}{"email": resetPasswordRequest.Email}, 
+		map[string]interface{}{"password_hash": hashedPassword},
+	); err != nil {
+		return fmt.Errorf("lỗi khi cập nhật mật khẩu: %w", err)
+	}
+
+	return nil
+}
+
+func(s *AccountServiceImpl) ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) (error){
+	// Get the account by ID
+	account, err := s.accountRepository.GetAccountById(ctx, id)
+	if err != nil {
+		return fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
+	}
+
+	if account == nil {
+		return fmt.Errorf("tài khoản không tồn tại")
+	}
+
+	// Hash the new password
+	hashedPassword, err := utils.HashPassword(changePasswordRequest.NewPassword)
+	if err != nil {
+		return fmt.Errorf("lỗi khi mã hóa mật khẩu: %w", err)
+	}
+
+	// Update the account's password
+	if err := s.accountRepository.Update(
+		ctx, 
+		map[string]interface{}{"id": id}, 
+		map[string]interface{}{"password_hash": hashedPassword},
+	); err != nil {
+		return fmt.Errorf("lỗi khi cập nhật mật khẩu: %w", err)
+	}
+
+	return nil
 }

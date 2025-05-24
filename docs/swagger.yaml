@@ -85,6 +85,51 @@ info:
   title: Healthy Service API Document
   version: "1.0"
 paths:
+  /auth/change-password:
+    post:
+      consumes:
+      - application/json
+      description: Change password for the logged-in user
+      parameters:
+      - description: Change password request information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password changed successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                result:
+                  type: boolean
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Token must be in Bearer format
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: You do not have permission to access this resource
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Change password
+      tags:
+      - Auth
   /auth/forgot-password:
     post:
       consumes:
@@ -180,6 +225,36 @@ paths:
       summary: Register a new account
       tags:
       - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset password after verifying OTP
+      parameters:
+      - description: Reset password request information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Reset password
+      tags:
+      - Auth
   /auth/verify-email:
     post:
       consumes:
@@ -213,6 +288,41 @@ paths:
           schema:
             $ref: '#/definitions/common.ResponseError'
       summary: Verify OTP for account
+      tags:
+      - Auth
+  /auth/verify-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP for forgot password
+      parameters:
+      - description: Request OTP information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestOTP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP verified successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                result:
+                  type: boolean
+              type: object
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Verify OTP for forgot password
       tags:
       - Auth
 schemes:

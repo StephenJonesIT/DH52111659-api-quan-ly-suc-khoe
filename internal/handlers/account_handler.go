@@ -145,3 +145,101 @@ func(h *AccountHandler) ForgotPasswordHandler(ctx *gin.Context){
 	ctx.JSON(http.StatusOK, common.NewResponseForgotPassword("OTP sent successfully", request.Email ,result))
 }
 
+// VerifyOTPHandler godoc
+// @Summary Verify OTP for forgot password
+// @Description Verify OTP for forgot password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body common.RequestOTP true "Request OTP information"
+// @Success 200 {object} common.ResponseNormal{result=bool} "OTP verified successfully"
+// @Failure 400 {object} common.ResponseError "Invalid request parameters"
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/verify-otp [post]
+func(h *AccountHandler) VerifyOTPHandler(ctx *gin.Context){
+	var request common.RequestOTP
+
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError("Invalid request parameters"))
+		return
+	}
+
+	isVerified, err := h.accountService.VerifyOTP(ctx, request.Email, request.OTP, true)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseResult("OTP verified successfully", isVerified))
+}
+
+// ResetPasswordHandler godoc
+// @Summary Reset password
+// @Description Reset password after verifying OTP
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body common.RequestLogin true "Reset password request information"
+// @Success 200 {object} common.ResponseNormal "Password reset successfully"
+// @Failure 400 {object} common.ResponseError "Invalid request body"
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/reset-password [post]
+func(h *AccountHandler) ResetPasswordHandler(ctx *gin.Context){
+	var request common.RequestLogin
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	if err := h.accountService.ResetPassword(ctx, &request); err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseResult("Password reset successfully", true))
+}
+
+// ChangPassword godoc
+// @Summary Change password
+// @Description Change password for the logged-in user
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body common.RequestLogin true "Change password request information"
+// @Success 200 {object} common.ResponseNormal{result=bool} "Password changed successfully"
+// @Failure 400 {object} common.ResponseError "Invalid request body"
+// @Failure 401 {object} common.ResponseError "Token must be in Bearer format"
+// @Failure 403 {object} common.ResponseError "You do not have permission to access this resource""
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/change-password [post]
+func(h *AccountHandler) ChangePasswordHandler(ctx *gin.Context){
+	var request common.RequestChangePassword
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, common.NewResponseError("User ID not found in context"))
+		return
+	}
+
+	if err := h.accountService.ChangePassword(ctx, userID.(string), &request); err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseResult("Password changed successfully", true))
+}
