@@ -34,7 +34,7 @@ func(h *AccountHandler) RegisterAccountHandler(ctx *gin.Context) {
 	var request models.Account
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.JSON(http.StatusBadRequest, common.NewResponseError("Invalid request body"))
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
 		return
 	}
 
@@ -73,3 +73,75 @@ func(h *AccountHandler) RegisterVerifyOTPHandler(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, common.NewResponseResult("OTP verified successfully", isVerified))
 }
+
+
+// Login godoc
+// @Summary Login to the system
+// @Description Login to the system with email and password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param loginRequest body common.RequestLogin true "Login request information"
+// @Success 200 {object} common.ResponseLogin "Login successful"
+// @Failure 400 {object} common.ResponseError "Invalid request body"
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/login [post]
+func(h *AccountHandler) LoginHandler(ctx *gin.Context) {
+	var loginRequest common.RequestLogin
+
+	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(&loginRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	account, accessToken, refreshToken, err := h.accountService.Login(ctx, &loginRequest)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseLogin(
+		account.ID.String(),
+		account.Role,
+		accessToken,
+		refreshToken,
+	))
+}
+
+// ForgotPassword godoc
+// @Summary Forgot password
+// @Description Handle forgot password request
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body common.RequestForgotPassword true "Forgot password request information"
+// @Success 200 {object} common.ResponseNormal "OTP sent successfully"
+// @Failure 400 {object} common.ResponseError "Invalid request body"
+// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Router /auth/forgot-password [post]
+func(h *AccountHandler) ForgotPasswordHandler(ctx *gin.Context){
+	var request common.RequestForgotPassword
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	result, err := h.accountService.ForgotPassowrd(ctx, request.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseForgotPassword("OTP sent successfully", request.Email ,result))
+}
+

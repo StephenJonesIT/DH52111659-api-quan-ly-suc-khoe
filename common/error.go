@@ -1,5 +1,6 @@
 package common
 
+var ErrBadRequestShouldBind = "Invalid request body"
 type ResponseError struct {
 	Message string `json:"error"`
 }

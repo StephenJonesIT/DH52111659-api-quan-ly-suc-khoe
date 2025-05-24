@@ -43,3 +43,12 @@ func NewResponseResult(message string, result bool) *ResponseNormal {
 		Result:  result,
 	}
 }
+
+
+func NewResponseForgotPassword(message, email string, result bool) *ResponseNormal {
+	return &ResponseNormal{
+		Message: message,
+		Email:   email,
+		Result:  result,
+	}
+}

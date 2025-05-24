@@ -58,6 +58,8 @@ func registerRouter(router *gin.Engine, accountHandler *handlers.AccountHandler)
 		{
 			authGroup.POST("/register", accountHandler.RegisterAccountHandler)
 			authGroup.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
+			authGroup.POST("/login", accountHandler.LoginHandler)
+			authGroup.POST("/forgot-password", accountHandler.ForgotPasswordHandler)
 		}
 	}
 }

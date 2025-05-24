@@ -1,5 +1,24 @@
 basePath: /api/v1
 definitions:
+  common.RequestForgotPassword:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  common.RequestLogin:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 100
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
   common.RequestOTP:
     properties:
       email:
@@ -13,6 +32,17 @@ definitions:
   common.ResponseError:
     properties:
       error:
+        type: string
+    type: object
+  common.ResponseLogin:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      role:
+        type: string
+      user_id:
         type: string
     type: object
   common.ResponseNormal:
@@ -55,6 +85,66 @@ info:
   title: Healthy Service API Document
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Handle forgot password request
+      parameters:
+      - description: Forgot password request information
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestForgotPassword'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OTP sent successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Forgot password
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login to the system with email and password
+      parameters:
+      - description: Login request information
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            $ref: '#/definitions/common.ResponseLogin'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Login to the system
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
