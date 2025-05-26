@@ -16,7 +16,53 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/change-password": {
+        "/auth/login": {
+            "post": {
+                "description": "Login to the system with email and password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login to the system",
+                "parameters": [
+                    {
+                        "description": "Login request information",
+                        "name": "loginRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/common.RequestLogin"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseLogin"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/password/change": {
             "post": {
                 "security": [
                     {
@@ -98,7 +144,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/forgot-password": {
+        "/auth/password/forgot": {
             "post": {
                 "description": "Handle forgot password request",
                 "consumes": [
@@ -144,9 +190,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/login": {
+        "/auth/password/reset": {
             "post": {
-                "description": "Login to the system with email and password",
+                "description": "Reset password after verifying OTP",
                 "consumes": [
                     "application/json"
                 ],
@@ -156,11 +202,11 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Login to the system",
+                "summary": "Reset password",
                 "parameters": [
                     {
-                        "description": "Login request information",
-                        "name": "loginRequest",
+                        "description": "Reset password request information",
+                        "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -170,9 +216,9 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Login successful",
+                        "description": "Password reset successfully",
                         "schema": {
-                            "$ref": "#/definitions/common.ResponseLogin"
+                            "$ref": "#/definitions/common.ResponseNormal"
                         }
                     },
                     "400": {
@@ -190,9 +236,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/refresh-token": {
+        "/auth/password/verify-otp": {
             "post": {
-                "description": "Refresh access token using refresh token",
+                "description": "Verify OTP for forgot password",
                 "consumes": [
                     "application/json"
                 ],
@@ -202,27 +248,39 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Refresh access token",
+                "summary": "Verify OTP for forgot password",
                 "parameters": [
                     {
-                        "description": "Refresh token request information",
+                        "description": "Request OTP information",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/common.RequestRefreshToken"
+                            "$ref": "#/definitions/common.RequestOTP"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OTP verified successfully",
                         "schema": {
-                            "$ref": "#/definitions/common.ResponseAccessToken"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.ResponseNormal"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "result": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
-                        "description": "Invalid request body",
+                        "description": "Invalid request parameters",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
@@ -294,9 +352,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/reset-password": {
+        "/auth/token/refresh": {
             "post": {
-                "description": "Reset password after verifying OTP",
+                "description": "Refresh access token using refresh token",
                 "consumes": [
                     "application/json"
                 ],
@@ -306,23 +364,23 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Reset password",
+                "summary": "Refresh access token",
                 "parameters": [
                     {
-                        "description": "Reset password request information",
+                        "description": "Refresh token request information",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/common.RequestLogin"
+                            "$ref": "#/definitions/common.RequestRefreshToken"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Password reset successfully",
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/common.ResponseNormal"
+                            "$ref": "#/definitions/common.ResponseAccessToken"
                         }
                     },
                     "400": {
@@ -398,33 +456,44 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/verify-otp": {
+        "/profile": {
             "post": {
-                "description": "Verify OTP for forgot password",
+                "description": "Create user profile with file image and json profile",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "Profile"
                 ],
-                "summary": "Verify OTP for forgot password",
+                "summary": "Create a new profile",
                 "parameters": [
                     {
-                        "description": "Request OTP information",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/common.RequestOTP"
-                        }
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Profile image file (max 10MB)",
+                        "name": "image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Json body for profile",
+                        "name": "metadata",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OTP verified successfully",
+                    "201": {
+                        "description": "Profile created successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -433,8 +502,8 @@ const docTemplate = `{
                                 {
                                     "type": "object",
                                     "properties": {
-                                        "result": {
-                                            "type": "boolean"
+                                        "data": {
+                                            "type": "object"
                                         }
                                     }
                                 }
@@ -442,7 +511,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters",
+                        "description": "invalid request form-data",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid token",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }

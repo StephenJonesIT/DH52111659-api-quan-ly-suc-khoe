@@ -38,11 +38,14 @@ func main() {
 
 	// 4. Khởi tạo các service và handler
 	accountRepo := repositories.NewAccountRepoImpl(repositories.DB)
-	accountService := services.NewAccountServiceImpl(accountRepo, redis)
-	accountHandler := handlers.NewAccountHandler(accountService)
+	authService := services.NewAuthServiceImpl(accountRepo, redis)
+	authHandler := handlers.NewAuthHandler(authService)
 
+	profileRepo := repositories.NewProfileRepoImpl(repositories.DB)
+	profileService := services.NewProfileServiceImpl(profileRepo)
+	profileHandler := handlers.NewProfileHandler(profileService)
 	// 5. Đăng ký các route
-	registerRouter(router, accountHandler)
+	registerRouter(router, authHandler, profileHandler)
 
 	// 6. Khởi động server
 	if err := router.Run(":"+config.AppConfig.GinPort); err != nil {
@@ -50,25 +53,45 @@ func main() {
 	}
 }
 
-func registerRouter(router *gin.Engine, accountHandler *handlers.AccountHandler) {
+func registerRouter(
+	router *gin.Engine, 
+	accountHandler *handlers.AuthHandler,
+	profileHandler *handlers.ProfileHandler,
+	) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := router.Group("/api/v1")
 	{
+		api.Static("/uploads/avatar", "./uploads/avatar")
 		// Đăng ký các route cho tài khoản
 		authGroup := api.Group("/auth")
 		{
-			authGroup.POST("/refresh-token", accountHandler.RefreshTokenHandler)
-			authGroup.POST("/register", accountHandler.RegisterAccountHandler)
-			authGroup.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
-			authGroup.POST("/login", accountHandler.LoginHandler)
-			authGroup.POST("/forgot-password", accountHandler.ForgotPasswordHandler)
-			authGroup.POST("/verify-otp", accountHandler.VerifyOTPHandler)
-			authGroup.POST("/reset-password", accountHandler.ResetPasswordHandler)
-			
-			authGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
-			authGroup.POST("/change-password", accountHandler.ChangePasswordHandler)
+			public := authGroup.Group("")
+			{
+				public.POST("/register", accountHandler.RegisterAccountHandler)
+				public.POST("/verify-email", accountHandler.RegisterVerifyOTPHandler)
+				public.POST("/login", accountHandler.LoginHandler)
+				public.POST("/token/refresh", accountHandler.RefreshTokenHandler)
+				public.POST("/password/forgot", accountHandler.ForgotPasswordHandler)
+				public.POST("/password/verify-otp", accountHandler.VerifyOTPHandler)
+				public.POST("/password/reset", accountHandler.ResetPasswordHandler)
+			}
+	
+			protected := authGroup.Group("")
+			{
+				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
+				protected.POST("/password/change", accountHandler.ChangePasswordHandler)
+			}		
+		}
+
+		profileGroup := api.Group("/profile")
+		{
+			protected := profileGroup.Group("")
+			{
+				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
+				protected.POST("",profileHandler.CreateProfileHandler)
+			}
 		}
 	}
 }

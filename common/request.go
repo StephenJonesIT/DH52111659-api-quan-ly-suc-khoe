@@ -1,16 +1,5 @@
 package common
 
-import "github.com/go-playground/validator/v10"
-
-var validate = validator.New()
-
-func ValidateRequest(request interface{}) error {
-	err := validate.Struct(request)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 type RequestOTP struct {
 	Email string `json:"email" validate:"required,email"`
 	OTP   string `json:"otp" validate:"required,len=6"`

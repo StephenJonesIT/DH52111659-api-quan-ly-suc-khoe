@@ -22,6 +22,7 @@ type Config struct {
 	SenderPass 	string
 	SECRET_KEY 	string
 	GinPort   	string
+	UploadDir	string
 }
 
 var AppConfig *Config
@@ -47,6 +48,7 @@ func LoadConfig() {
 		SenderPass: getEnv("SENDER_PASS", ""),
 		SECRET_KEY: getEnv("JWT_SECRET",""),
 		GinPort: getEnv("GIN_PORT", "8080"),
+		UploadDir: getEnv("UPLOAD_DIR",""),
 	}
 }
 
