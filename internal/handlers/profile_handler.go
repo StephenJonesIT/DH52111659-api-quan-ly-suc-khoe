@@ -104,8 +104,8 @@ func(h *ProfileHandler) UpdateProfileHandler(ctx *gin.Context) {
 
 	cond := ctx.Param("id")
 	deleteURL := updateProfileRequest.AvatarURL
-	log.Printf(deleteURL)
 	
+	log.Print(deleteURL)
 	updateProfileRequest.AvatarURL = avatarURL
 	 // Store the URL to delete later if needed
 

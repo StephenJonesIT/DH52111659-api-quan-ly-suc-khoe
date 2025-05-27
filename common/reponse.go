@@ -5,6 +5,7 @@ type ResponseNormal struct {
 	Email   string      `json:"email,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 	Result  bool 	  	`json:"result,omitempty"` 
+	Paging  interface{}	`json:"paging,omitempty"`
 }
 
 type ResponseLogin struct {
@@ -60,5 +61,13 @@ func NewResponseForgotPassword(message, email string, result bool) *ResponseNorm
 func NewResponseAccessToken(accessToken string) *ResponseAccessToken {
 	return &ResponseAccessToken{
 		AccessToken: accessToken,
+	}
+}
+
+func NewResponsePaging(message string, data interface{}, paging interface{}) *ResponseNormal {
+	return &ResponseNormal{
+		Message: message,
+		Data:    data,
+		Paging:  paging,
 	}
 }

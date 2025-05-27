@@ -5,7 +5,7 @@ type RequestOTP struct {
 	OTP   string `json:"otp" validate:"required,len=6"`
 }
 
-type RequestLogin struct {
+type RequestAuth struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=8,max=100"`
 }
@@ -15,6 +15,7 @@ type RequestForgotPassword struct {
 }
 
 type RequestChangePassword struct {
+	OldPassword string `json:"old_password" validate:"required,min=8,max=100"`
 	NewPassword string `json:"new_password" validate:"required,min=8,max=100"`
 }
 

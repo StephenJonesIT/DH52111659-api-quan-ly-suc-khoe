@@ -81,13 +81,13 @@ func(h *AuthHandler) RegisterVerifyOTPHandler(ctx *gin.Context) {
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param loginRequest body common.RequestLogin true "Login request information"
+// @Param loginRequest body common.RequestAuth true "Login request information"
 // @Success 200 {object} common.ResponseLogin "Login successful"
 // @Failure 400 {object} common.ResponseError "Invalid request body"
 // @Failure 500 {object} common.ResponseError "Internal server error"
 // @Router /auth/login [post]
 func(h *AuthHandler) LoginHandler(ctx *gin.Context) {
-	var loginRequest common.RequestLogin
+	var loginRequest common.RequestAuth
 
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
@@ -179,13 +179,13 @@ func(h *AuthHandler) VerifyOTPHandler(ctx *gin.Context){
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param request body common.RequestLogin true "Reset password request information"
+// @Param request body common.RequestAuth true "Reset password request information"
 // @Success 200 {object} common.ResponseNormal "Password reset successfully"
 // @Failure 400 {object} common.ResponseError "Invalid request body"
 // @Failure 500 {object} common.ResponseError "Internal server error"
 // @Router /auth/password/reset [post]
 func(h *AuthHandler) ResetPasswordHandler(ctx *gin.Context){
-	var request common.RequestLogin
+	var request common.RequestAuth
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
 		return
