@@ -171,6 +171,117 @@ paths:
       summary: Create a new user account
       tags:
       - User
+  /admin/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user details by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Account'
+              type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Get user by ID
+      tags:
+      - User
+  /admin/user/{id}/lock:
+    patch:
+      consumes:
+      - application/json
+      description: Lock user account by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User account locked successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Lock user account
+      tags:
+      - User
+  /admin/user/{id}/unlock:
+    patch:
+      consumes:
+      - application/json
+      description: Unlock user account by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User account unlocked successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Unlock user account
+      tags:
+      - User
   /admin/user/reset-password:
     post:
       consumes:

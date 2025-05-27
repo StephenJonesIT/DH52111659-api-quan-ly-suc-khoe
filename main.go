@@ -107,6 +107,9 @@ func registerRouter(
 				userGroup.POST("/user", userHandler.CreateUserHandler)
 				userGroup.POST("/user/reset-password", userHandler.ResetPasswordUserHandler)
 				userGroup.GET("/users", userHandler.GetListUserHandler)
+				userGroup.GET("/user/:id", userHandler.GetUserByIdHandler)
+				userGroup.PATCH("/user/:id/lock", userHandler.LockUserAccountHandler)
+				userGroup.PATCH("/user/:id/unlock", userHandler.UnlockUserAccountHandler)
 			}
 		}
 	}

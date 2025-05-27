@@ -93,6 +93,7 @@ func(repo *AccountRepoImpl) GetListAccount(ctx context.Context, paging *common.P
 	}
 
 	if err := query.
+		Order("created_at DESC").
 		Offset((paging.Page-1)*paging.Limit).
 		Limit(paging.Limit).
 		Find(&accounts).Error; err != nil {
@@ -100,3 +101,4 @@ func(repo *AccountRepoImpl) GetListAccount(ctx context.Context, paging *common.P
 	}
 	return accounts, nil
 }
+

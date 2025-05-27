@@ -13,6 +13,9 @@ type UserService interface {
 	CreateAccount(ctx context.Context, account *models.AccountCreate) (*models.Account, error)
 	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestAuth) error
 	GetListAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error)
+	GetAccountById(ctx context.Context, id string) (*models.Account, error)
+	LockAccount(ctx context.Context, id string) error
+	UnlockAccount(ctx context.Context, id string) error
 }
 
 type UserServiceImpl struct {
@@ -96,4 +99,58 @@ func(s *UserServiceImpl) GetListAccounts(ctx context.Context, paging *common.Pag
 	}
 
 	return accounts, nil
+}
+
+func(s *UserServiceImpl) GetAccountById(ctx context.Context, id string) (*models.Account, error){
+	account, err := s.accountRepository.GetAccountById(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
+	}
+
+	if account == nil {
+		return nil, fmt.Errorf("tài khoản không tồn tại")
+	}
+
+	return account, nil
+}
+
+func(s *UserServiceImpl) LockAccount(ctx context.Context, id string) error {
+	account, err := s.accountRepository.GetAccountById(ctx, id)
+	if err != nil {
+		return fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
+	}
+	if account == nil {
+		return fmt.Errorf("tài khoản không tồn tại")
+	}
+
+	if err := s.accountRepository.Update(
+		ctx, 
+		map[string]interface{}{"id": id},
+		map[string]interface{}{"account_status": false},
+	); err != nil {
+		return fmt.Errorf("lỗi khi khóa tài khoản: %w", err)
+	}
+
+	return nil
+}
+
+func(s *UserServiceImpl) UnlockAccount(ctx context.Context, id string) error {
+	account, err := s.accountRepository.GetAccountById(ctx, id)
+	if err != nil {
+		return fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
+	}
+
+	if account == nil {
+		return fmt.Errorf("tài khoản không tồn tại")
+	}
+
+	if err := s.accountRepository.Update(
+		ctx, 
+		map[string]interface{}{"id": id},
+		map[string]interface{}{"account_status": true},
+	); err != nil {
+		return fmt.Errorf("lỗi khi mở khóa tài khoản: %w", err)
+	}
+
+	return nil
 }
