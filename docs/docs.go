@@ -530,6 +530,94 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/profile/{id}": {
+            "put": {
+                "description": "Update user profile with file image and json profile",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Profile image file (max 10MB)",
+                        "name": "image",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Json body for profile",
+                        "name": "metadata",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.ResponseNormal"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "invalid request form-data",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "Profile not found",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

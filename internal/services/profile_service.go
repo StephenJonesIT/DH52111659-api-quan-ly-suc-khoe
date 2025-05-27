@@ -10,6 +10,7 @@ import (
 type ProfileService interface {
 	GetProfileByID(ctx context.Context, id string) (*models.Profile, error)
 	CreateProfile(ctx context.Context, profileRequest *models.Profile) (*models.Profile, error)
+	UpdateProfile(ctx context.Context, cond string, profileRequest *models.Profile) (*models.Profile, error)
 }
 
 type ProfileServiceImpl struct {
@@ -47,4 +48,26 @@ func(s *ProfileServiceImpl) CreateProfile(ctx context.Context, profileRequest *m
 	}
 
 	return profile, nil
+}
+
+func(s *ProfileServiceImpl) UpdateProfile(
+	ctx context.Context, 
+	cond string, 
+	profileRequest *models.Profile,
+	) (*models.Profile, error){
+		profile, err := s.repo.GetProfileByID(ctx, cond); 
+		if err != nil {
+			return nil, fmt.Errorf("profile not found")
+		}
+
+		profile.FullName 	= profileRequest.FullName
+		profile.DayOfBirth 	= profileRequest.DayOfBirth
+		profile.Gender 		= profileRequest.Gender
+		profile.AvatarURL 	= profileRequest.AvatarURL
+	
+		if err := s.repo.Update(ctx, map[string]interface{}{"user_id":cond}, profile); err != nil {
+			return nil, fmt.Errorf("error updating profile: %w", err)
+		}
+
+		return profile, nil
 }

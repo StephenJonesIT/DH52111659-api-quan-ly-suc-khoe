@@ -428,6 +428,62 @@ paths:
       summary: Create a new profile
       tags:
       - Profile
+  /profile/{id}:
+    put:
+      consumes:
+      - multipart/form-data
+      description: Update user profile with file image and json profile
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Profile image file (max 10MB)
+        in: formData
+        name: image
+        type: file
+      - description: Json body for profile
+        in: formData
+        name: metadata
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: invalid request form-data
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: invalid token
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: Profile not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Update user profile
+      tags:
+      - Profile
 schemes:
 - http
 - https

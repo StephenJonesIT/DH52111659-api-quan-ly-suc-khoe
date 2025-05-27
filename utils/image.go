@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -60,6 +61,7 @@ func HandleFileDeleted(fileName string, uploadDir string) error {
 	}
 
 	fileUrl := getAvatarFilePath(uploadDir, fileName)
+	log.Printf("Attempting to delete file: %s", fileUrl)
 	fileInfo, err := os.Stat(fileUrl)
     if os.IsNotExist(err) {
         return nil // File doesn't exist is not an error
@@ -73,6 +75,7 @@ func HandleFileDeleted(fileName string, uploadDir string) error {
         return fmt.Errorf("path is a directory: %s", fileUrl)
     }
 
+	os.Chmod(fileUrl, 077) // Ensure the file is writable before deletion
     if err := os.Remove(fileUrl); err != nil {
         return fmt.Errorf("failed to delete file: %w", err)
     }
@@ -100,5 +103,6 @@ func createUploadDir(uploadDir string) (string, error) {
 func getAvatarFilePath(uploadDir, fileURL string) string {
 	fileName := path.Base(fileURL)
 	baseURL := filepath.Join(uploadDir,avatar)
+	log.Printf("Base URL: %s, File Name: %s", baseURL, fileName)
 	return filepath.Join(baseURL, fileName)
 }

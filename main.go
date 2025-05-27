@@ -91,6 +91,7 @@ func registerRouter(
 			{
 				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
 				protected.POST("",profileHandler.CreateProfileHandler)
+				protected.PUT(":id", profileHandler.UpdateProfileHandler)
 			}
 		}
 	}

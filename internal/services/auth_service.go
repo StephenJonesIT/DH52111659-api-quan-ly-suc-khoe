@@ -114,7 +114,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, loginRequest *common.Reques
 	}
 
 	if !utils.ComparePasswordHash(account.Password, loginRequest.Password) {
-		return nil, "", "", fmt.Errorf("mật khẩu không đúng")
+		return nil, "", "", fmt.Errorf("mật khẩu không chính xác")
 	}
 
 	// Generate access and refresh tokens

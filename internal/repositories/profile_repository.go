@@ -10,6 +10,7 @@ import (
 type ProfileRepository interface {
 	GetProfileByID(ctx context.Context, profileID string) (*models.Profile, error)
 	Create(ctx context.Context, profile *models.Profile) (*models.Profile, error)
+	Update(ctx context.Context, cond map[string]interface{}, profile *models.Profile) (error)
 }
 
 type ProfileRepositoryImpl struct {
@@ -49,3 +50,16 @@ func(r *ProfileRepositoryImpl) Create(ctx context.Context, profile *models.Profi
 	return profile, nil
 }
 
+func(r *ProfileRepositoryImpl) Update(
+	ctx context.Context, 
+	cond map[string]interface{}, 
+	profile *models.Profile,
+	) (error) {
+		if err := r.DB.WithContext(ctx).
+		Table(models.Profile{}.TableName()).
+		Where(cond).
+		Updates(profile).Error; err != nil {
+			return err
+		}
+		return nil
+}
