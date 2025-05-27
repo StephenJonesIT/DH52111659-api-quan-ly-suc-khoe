@@ -44,8 +44,11 @@ func main() {
 	profileRepo := repositories.NewProfileRepoImpl(repositories.DB)
 	profileService := services.NewProfileServiceImpl(profileRepo)
 	profileHandler := handlers.NewProfileHandler(profileService)
+
+	userService := services.NewUserServiceImpl(accountRepo)
+	userHandler := handlers.NewUserHandler(userService)
 	// 5. Đăng ký các route
-	registerRouter(router, authHandler, profileHandler)
+	registerRouter(router, authHandler, profileHandler, userHandler)
 
 	// 6. Khởi động server
 	if err := router.Run(":"+config.AppConfig.GinPort); err != nil {
@@ -57,6 +60,7 @@ func registerRouter(
 	router *gin.Engine, 
 	accountHandler *handlers.AuthHandler,
 	profileHandler *handlers.ProfileHandler,
+	userHandler *handlers.UserHandler,
 	) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -92,6 +96,15 @@ func registerRouter(
 				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
 				protected.POST("",profileHandler.CreateProfileHandler)
 				protected.PUT(":id", profileHandler.UpdateProfileHandler)
+			}
+		}
+
+		adminGroup := api.Group("/admin")
+		{
+			adminGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY), "admin"))
+			userGroup := adminGroup.Group("/user")
+			{
+				userGroup.POST("", userHandler.CreateUserHandler)
 			}
 		}
 	}

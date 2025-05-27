@@ -28,3 +28,10 @@ func (a *Account) BeforeCreate(tx *gorm.DB) error {
     return nil
 }
 
+type AccountCreate struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8,max=100"`
+	Role     string `json:"role,omitempty" validate:"omitempty,oneof=admin user"`
+	IsVerified bool   `json:"is_verified,omitempty" validate:"omitempty"`
+}
+
