@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"context"
 
@@ -13,6 +14,7 @@ type AccountRepository interface {
 	GetByEmail(ctx context.Context, email string) (*models.Account, error)
 	GetAccountById(ctx context.Context, id string) (*models.Account, error)
 	GetDB() *gorm.DB
+	GetListAccount(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error)
 }
 
 
@@ -80,4 +82,21 @@ func(repo *AccountRepoImpl) GetAccountById(ctx context.Context, id string) (*mod
 
 func (repo *AccountRepoImpl) GetDB() *gorm.DB{
 	return repo.DB
+}
+
+func(repo *AccountRepoImpl) GetListAccount(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error) {
+	var accounts []*models.Account
+
+	query := repo.DB.WithContext(ctx).Table(models.Account{}.TableName()).Where(cond)
+	if err := query.Count(&paging.Total).Error; err != nil {
+		return nil, err
+	}
+
+	if err := query.
+		Offset((paging.Page-1)*paging.Limit).
+		Limit(paging.Limit).
+		Find(&accounts).Error; err != nil {
+		return nil, err
+	}
+	return accounts, nil
 }

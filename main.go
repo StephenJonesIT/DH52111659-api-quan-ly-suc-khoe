@@ -102,9 +102,11 @@ func registerRouter(
 		adminGroup := api.Group("/admin")
 		{
 			adminGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY), "admin"))
-			userGroup := adminGroup.Group("/user")
+			userGroup := adminGroup.Group("")
 			{
-				userGroup.POST("", userHandler.CreateUserHandler)
+				userGroup.POST("/user", userHandler.CreateUserHandler)
+				userGroup.POST("/user/reset-password", userHandler.ResetPasswordUserHandler)
+				userGroup.GET("/users", userHandler.GetListUserHandler)
 			}
 		}
 	}

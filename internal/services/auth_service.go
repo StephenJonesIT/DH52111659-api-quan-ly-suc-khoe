@@ -15,9 +15,9 @@ import (
 type AuthService interface {
 	RegisterAccount(ctx context.Context, account *models.Account) error
 	VerifyOTP(ctx context.Context, toEmail, otp string, isVerified bool) (bool, error)
-	Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error)
+	Login(ctx context.Context, loginRequest *common.RequestAuth) (*models.Account, string, string, error)
 	ForgotPassowrd(ctx context.Context, email string) (bool, error)
-	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) error
+	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestAuth) error
 	ChangePassword(ctx context.Context, id string, changePasswordRequest *common.RequestChangePassword) error
 	RefreshToken(ctx context.Context, requestRefreshToken *common.RequestRefreshToken) (string, error)
 }
@@ -99,7 +99,7 @@ func (s *AuthServiceImpl) VerifyOTP(ctx context.Context, toEmail, otp string, is
 	return result, nil
 }
 
-func (s *AuthServiceImpl) Login(ctx context.Context, loginRequest *common.RequestLogin) (*models.Account, string, string, error) {
+func (s *AuthServiceImpl) Login(ctx context.Context, loginRequest *common.RequestAuth) (*models.Account, string, string, error) {
 	account, err := s.accountRepository.GetByEmail(ctx, loginRequest.Email)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("lỗi khi lấy tài khoản: %w", err)
@@ -147,7 +147,7 @@ func (s *AuthServiceImpl) ForgotPassowrd(ctx context.Context, email string) (boo
 	return true, nil
 }
 
-func (s *AuthServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestLogin) error {
+func (s *AuthServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestAuth) error {
 	// Check if the account exists
 	account, err := s.accountRepository.GetByEmail(ctx, resetPasswordRequest.Email)
 	if err != nil {
@@ -187,6 +187,11 @@ func (s *AuthServiceImpl) ChangePassword(ctx context.Context, id string, changeP
 		return fmt.Errorf("tài khoản không tồn tại")
 	}
 
+	// Check if the old password matches
+	if !utils.ComparePasswordHash(account.Password, changePasswordRequest.OldPassword) {
+		return fmt.Errorf("mật khẩu cũ không chính xác")
+	}
+	
 	// Hash the new password
 	hashedPassword, err := utils.HashPassword(changePasswordRequest.NewPassword)
 	if err != nil {

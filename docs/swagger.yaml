@@ -1,22 +1,6 @@
 basePath: /api/v1
 definitions:
-  common.RequestChangePassword:
-    properties:
-      new_password:
-        maxLength: 100
-        minLength: 8
-        type: string
-    required:
-    - new_password
-    type: object
-  common.RequestForgotPassword:
-    properties:
-      email:
-        type: string
-    required:
-    - email
-    type: object
-  common.RequestLogin:
+  common.RequestAuth:
     properties:
       email:
         type: string
@@ -27,6 +11,27 @@ definitions:
     required:
     - email
     - password
+    type: object
+  common.RequestChangePassword:
+    properties:
+      new_password:
+        maxLength: 100
+        minLength: 8
+        type: string
+      old_password:
+        maxLength: 100
+        minLength: 8
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  common.RequestForgotPassword:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   common.RequestOTP:
     properties:
@@ -73,6 +78,7 @@ definitions:
         type: string
       message:
         type: string
+      paging: {}
       result:
         type: boolean
     type: object
@@ -165,6 +171,85 @@ paths:
       summary: Create a new user account
       tags:
       - User
+  /admin/user/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password with email and new password
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Reset password request
+        in: body
+        name: resetPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestAuth'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Reset user password
+      tags:
+      - User
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of users with pagination
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Page number (default is 1)
+        in: query
+        name: page
+        type: integer
+      - description: Number of users per page (default is 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of users
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Account'
+                  type: array
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Get list of users
+      tags:
+      - User
   /auth/login:
     post:
       consumes:
@@ -176,7 +261,7 @@ paths:
         name: loginRequest
         required: true
         schema:
-          $ref: '#/definitions/common.RequestLogin'
+          $ref: '#/definitions/common.RequestAuth'
       produces:
       - application/json
       responses:
@@ -286,7 +371,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/common.RequestLogin'
+          $ref: '#/definitions/common.RequestAuth'
       produces:
       - application/json
       responses:
