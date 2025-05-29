@@ -111,7 +111,7 @@ func registerRouter(
 			{
 				userGroup.POST("/user", userHandler.CreateUserHandler)
 				userGroup.POST("/user/reset-password", userHandler.ResetPasswordUserHandler)
-				userGroup.GET("/users", userHandler.GetListUserHandler)
+				userGroup.GET("/users", userHandler.GetUsersHandler)
 				userGroup.GET("/user/:id", userHandler.GetUserByIdHandler)
 				userGroup.PATCH("/user/:id/lock", userHandler.LockUserAccountHandler)
 				userGroup.PATCH("/user/:id/unlock", userHandler.UnlockUserAccountHandler)
@@ -120,6 +120,7 @@ func registerRouter(
 			expertGroup := adminGroup.Group("")
 			{
 				expertGroup.POST("/expert",expertHandler.CreateExpertHandler)
+				expertGroup.GET("/experts", expertHandler.GetExpertsHandler)
 			}
 		}
 	}

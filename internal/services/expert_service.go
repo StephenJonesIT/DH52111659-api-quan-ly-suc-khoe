@@ -1,6 +1,7 @@
 package services
 
 import (
+	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
 	"DH52111659-api-quan-ly-suc-khoe/utils"
@@ -10,6 +11,7 @@ import (
 
 type ExpertService interface {
 	CreateExpert(ctx context.Context, createExpertRequest *models.ExpertCreate) (*models.ExpertCreate, error)
+	GetAllExperts(ctx context.Context, paging *common.Paging) ([]*models.Expert, error)
 }
 
 type ExpertServiceImpl struct {
@@ -26,7 +28,7 @@ func (s *ExpertServiceImpl) CreateExpert(ctx context.Context, createExpertReques
 ) {
 	if createExpertRequest.TelephoneNumber != "" {
 		if !utils.IsValidVietnamesePhoneNumber(createExpertRequest.TelephoneNumber) {
-			return nil, fmt.Errorf("Số điện thoại không hợp lệ")
+			return nil, fmt.Errorf("số điện thoại không hợp lệ")
 		}
 	}
 
@@ -35,4 +37,23 @@ func (s *ExpertServiceImpl) CreateExpert(ctx context.Context, createExpertReques
 	}
 
 	return createExpertRequest, nil
+}
+
+func (s *ExpertServiceImpl) GetAllExperts(
+	ctx context.Context,
+	paging *common.Paging,
+) ([]*models.Expert, error) {
+	paging.ProcessPaging()
+
+	experts, err := s.expertRepo.GetExperts(
+		ctx,
+		map[string]interface{}{"is_deleted":false},
+		paging,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return experts, nil
 }

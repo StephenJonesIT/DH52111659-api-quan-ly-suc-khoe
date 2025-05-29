@@ -14,7 +14,7 @@ type AccountRepository interface {
 	GetByEmail(ctx context.Context, email string) (*models.Account, error)
 	GetAccountById(ctx context.Context, id string) (*models.Account, error)
 	GetDB() *gorm.DB
-	GetListAccount(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error)
+	GetAccounts(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error)
 }
 
 
@@ -84,7 +84,7 @@ func (repo *AccountRepoImpl) GetDB() *gorm.DB{
 	return repo.DB
 }
 
-func(repo *AccountRepoImpl) GetListAccount(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error) {
+func(repo *AccountRepoImpl) GetAccounts(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error) {
 	var accounts []*models.Account
 
 	query := repo.DB.WithContext(ctx).Table(models.Account{}.TableName()).Where(cond)

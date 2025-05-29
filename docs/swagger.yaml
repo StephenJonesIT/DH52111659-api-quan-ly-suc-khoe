@@ -123,6 +123,33 @@ definitions:
     - email
     - password
     type: object
+  models.Expert:
+    properties:
+      account_id:
+        type: string
+      avatar_url:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      expert_id:
+        type: integer
+      full_name:
+        type: string
+      gender:
+        type: boolean
+      is_deleted:
+        type: boolean
+      telephone_number:
+        type: string
+      verified:
+        type: boolean
+    required:
+    - date_of_birth
+    - email
+    - full_name
+    type: object
 host: 127.0.0.1:9000
 info:
   contact: {}
@@ -155,7 +182,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Created
+          description: Expert created successfully
           schema:
             allOf:
             - $ref: '#/definitions/common.ResponseNormal'
@@ -182,6 +209,60 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create a new expert
+      tags:
+      - Expert
+  /admin/experts:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of experts available in the system
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Page number (default is 1)
+        in: query
+        name: page
+        type: integer
+      - description: Number of experts per page (default is 10)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of expert
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Expert'
+                  type: array
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: You do not have permission to access this resource
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Retrieve a list of experts
       tags:
       - Expert
   /admin/user:

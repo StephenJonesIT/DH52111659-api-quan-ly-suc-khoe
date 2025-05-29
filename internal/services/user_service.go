@@ -12,7 +12,7 @@ import (
 type UserService interface {
 	CreateAccount(ctx context.Context, account *models.AccountCreate) (*models.Account, error)
 	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestAuth) error
-	GetListAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error)
+	GetAllAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error)
 	GetAccountById(ctx context.Context, id string) (*models.Account, error)
 	LockAccount(ctx context.Context, id string) error
 	UnlockAccount(ctx context.Context, id string) error
@@ -86,9 +86,9 @@ func(s *UserServiceImpl) ResetPassword(ctx context.Context, resetPasswordRequest
 	return nil
 }
 
-func(s *UserServiceImpl) GetListAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error){
+func(s *UserServiceImpl) GetAllAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error){
 	paging.ProcessPaging()
-	accounts, err := s.accountRepository.GetListAccount(
+	accounts, err := s.accountRepository.GetAccounts(
 		ctx, 
 		paging,
 		cond,

@@ -96,14 +96,14 @@ func (h *UserHandler) ResetPasswordUserHandler(ctx *gin.Context) {
 //	@Failure		400				{object}	common.ResponseError							"Invalid query parameters"
 //	@Failure		500				{object}	common.ResponseError							"Internal server error"
 //	@Router			/admin/users [get]
-func (h *UserHandler) GetListUserHandler(ctx *gin.Context) {
+func (h *UserHandler) GetUsersHandler(ctx *gin.Context) {
 	var paging common.Paging
 	if err := ctx.ShouldBindQuery(&paging); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
 		return
 	}
 
-	accounts, err := h.userService.GetListAccounts(
+	accounts, err := h.userService.GetAllAccounts(
 		ctx,
 		&paging,
 		map[string]interface{}{
