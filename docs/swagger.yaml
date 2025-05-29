@@ -131,6 +131,59 @@ info:
   title: Healthy Service API Document
   version: "1.0"
 paths:
+  /admin/expert:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create expert profile with file image and json expert data
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Expert image file (max 10MB)
+        in: formData
+        name: image
+        type: file
+      - description: Expert data in JSON format
+        in: formData
+        name: metadata
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new expert
+      tags:
+      - Expert
   /admin/user:
     post:
       consumes:

@@ -20,16 +20,16 @@ func NewAuthHandler(accountService services.AuthService) *AuthHandler{
 }
 
 // RegisterAccount godoc
-// @Summary Register a new account
-// @Description Register a new account with email and password
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param account body models.Account true "Account information"
-// @Success 201 {object} common.ResponseNormal{email=string} "Account created successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/register [post]
+//	@Summary		Register a new account
+//	@Description	Register a new account with email and password
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			account	body		models.Account						true	"Account information"
+//	@Success		201		{object}	common.ResponseNormal{email=string}	"Account created successfully"
+//	@Failure		400		{object}	common.ResponseError				"Invalid request body"
+//	@Failure		500		{object}	common.ResponseError				"Internal server error"
+//	@Router			/auth/register [post]
 func(h *AuthHandler) RegisterAccountHandler(ctx *gin.Context) {
 	var request models.Account
 
@@ -47,16 +47,16 @@ func(h *AuthHandler) RegisterAccountHandler(ctx *gin.Context) {
 }
 
 // VerifyOTP godoc
-// @Summary Verify OTP for account
-// @Description Verify OTP for account registration or password reset
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body common.RequestOTP true "Request OTP information"
-// @Success 200 {object} common.ResponseNormal{result=bool} "OTP verified successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request parameters"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/verify-email [post]
+//	@Summary		Verify OTP for account
+//	@Description	Verify OTP for account registration or password reset
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		common.RequestOTP					true	"Request OTP information"
+//	@Success		200		{object}	common.ResponseNormal{result=bool}	"OTP verified successfully"
+//	@Failure		400		{object}	common.ResponseError				"Invalid request parameters"
+//	@Failure		500		{object}	common.ResponseError				"Internal server error"
+//	@Router			/auth/verify-email [post]
 func(h *AuthHandler) RegisterVerifyOTPHandler(ctx *gin.Context) {
 	var request common.RequestOTP
 
@@ -76,16 +76,16 @@ func(h *AuthHandler) RegisterVerifyOTPHandler(ctx *gin.Context) {
 
 
 // Login godoc
-// @Summary Login to the system
-// @Description Login to the system with email and password
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param loginRequest body common.RequestAuth true "Login request information"
-// @Success 200 {object} common.ResponseLogin "Login successful"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/login [post]
+//	@Summary		Login to the system
+//	@Description	Login to the system with email and password
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			loginRequest	body		common.RequestAuth		true	"Login request information"
+//	@Success		200				{object}	common.ResponseLogin	"Login successful"
+//	@Failure		400				{object}	common.ResponseError	"Invalid request body"
+//	@Failure		500				{object}	common.ResponseError	"Internal server error"
+//	@Router			/auth/login [post]
 func(h *AuthHandler) LoginHandler(ctx *gin.Context) {
 	var loginRequest common.RequestAuth
 
@@ -114,16 +114,16 @@ func(h *AuthHandler) LoginHandler(ctx *gin.Context) {
 }
 
 // ForgotPassword godoc
-// @Summary Forgot password
-// @Description Handle forgot password request
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body common.RequestForgotPassword true "Forgot password request information"
-// @Success 200 {object} common.ResponseNormal "OTP sent successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/password/forgot [post]
+//	@Summary		Forgot password
+//	@Description	Handle forgot password request
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		common.RequestForgotPassword	true	"Forgot password request information"
+//	@Success		200		{object}	common.ResponseNormal			"OTP sent successfully"
+//	@Failure		400		{object}	common.ResponseError			"Invalid request body"
+//	@Failure		500		{object}	common.ResponseError			"Internal server error"
+//	@Router			/auth/password/forgot [post]
 func(h *AuthHandler) ForgotPasswordHandler(ctx *gin.Context){
 	var request common.RequestForgotPassword
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -146,16 +146,16 @@ func(h *AuthHandler) ForgotPasswordHandler(ctx *gin.Context){
 }
 
 // VerifyOTPHandler godoc
-// @Summary Verify OTP for forgot password
-// @Description Verify OTP for forgot password
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body common.RequestOTP true "Request OTP information"
-// @Success 200 {object} common.ResponseNormal{result=bool} "OTP verified successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request parameters"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/password/verify-otp [post]
+//	@Summary		Verify OTP for forgot password
+//	@Description	Verify OTP for forgot password
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		common.RequestOTP					true	"Request OTP information"
+//	@Success		200		{object}	common.ResponseNormal{result=bool}	"OTP verified successfully"
+//	@Failure		400		{object}	common.ResponseError				"Invalid request parameters"
+//	@Failure		500		{object}	common.ResponseError				"Internal server error"
+//	@Router			/auth/password/verify-otp [post]
 func(h *AuthHandler) VerifyOTPHandler(ctx *gin.Context){
 	var request common.RequestOTP
 
@@ -174,16 +174,16 @@ func(h *AuthHandler) VerifyOTPHandler(ctx *gin.Context){
 }
 
 // ResetPasswordHandler godoc
-// @Summary Reset password
-// @Description Reset password after verifying OTP
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body common.RequestAuth true "Reset password request information"
-// @Success 200 {object} common.ResponseNormal "Password reset successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/password/reset [post]
+//	@Summary		Reset password
+//	@Description	Reset password after verifying OTP
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		common.RequestAuth		true	"Reset password request information"
+//	@Success		200		{object}	common.ResponseNormal	"Password reset successfully"
+//	@Failure		400		{object}	common.ResponseError	"Invalid request body"
+//	@Failure		500		{object}	common.ResponseError	"Internal server error"
+//	@Router			/auth/password/reset [post]
 func(h *AuthHandler) ResetPasswordHandler(ctx *gin.Context){
 	var request common.RequestAuth
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -205,20 +205,20 @@ func(h *AuthHandler) ResetPasswordHandler(ctx *gin.Context){
 }
 
 // ChangPassword godoc
-// @Summary Change password
-// @Description Change password for the logged-in user
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param Authorization header string true "Bearer token for authentication"
-// @Param request body common.RequestChangePassword true "Change password request information"
-// @Success 200 {object} common.ResponseNormal{result=bool} "Password changed successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 401 {object} common.ResponseError "Token must be in Bearer format"
-// @Failure 403 {object} common.ResponseError "You do not have permission to access this resource""
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/password/change [post]
+//	@Summary		Change password
+//	@Description	Change password for the logged-in user
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			Authorization	header		string								true	"Bearer token for authentication"
+//	@Param			request			body		common.RequestChangePassword		true	"Change password request information"
+//	@Success		200				{object}	common.ResponseNormal{result=bool}	"Password changed successfully"
+//	@Failure		400				{object}	common.ResponseError				"Invalid request body"
+//	@Failure		401				{object}	common.ResponseError				"Token must be in Bearer format"
+//	@Failure		403				{object}	common.ResponseError				"You do not have permission to access this resource"
+//	@Failure		500				{object}	common.ResponseError				"Internal server error"
+//	@Router			/auth/password/change [post]
 func(h *AuthHandler) ChangePasswordHandler(ctx *gin.Context){
 	var request common.RequestChangePassword
 	if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -247,16 +247,16 @@ func(h *AuthHandler) ChangePasswordHandler(ctx *gin.Context){
 
 
 // RefreshTokenHandler godoc
-// @Summary Refresh access token
-// @Description Refresh access token using refresh token
-// @Tags Auth
-// @Accept json
-// @Produce json
-// @Param request body common.RequestRefreshToken true "Refresh token request information"
-// @Success 200 {object} common.ResponseAccessToken
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /auth/token/refresh [post]
+//	@Summary		Refresh access token
+//	@Description	Refresh access token using refresh token
+//	@Tags			Auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		common.RequestRefreshToken	true	"Refresh token request information"
+//	@Success		200		{object}	common.ResponseAccessToken
+//	@Failure		400		{object}	common.ResponseError	"Invalid request body"
+//	@Failure		500		{object}	common.ResponseError	"Internal server error"
+//	@Router			/auth/token/refresh [post]
 func(h *AuthHandler) RefreshTokenHandler(ctx *gin.Context) {
 	var request common.RequestRefreshToken
 	if err := ctx.ShouldBindJSON(&request); err != nil {

@@ -17,17 +17,17 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 }
 
 // CreateUser godoc
-// @Summary Create a new user account
-// @Description Create a new user account with email and password
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param account body models.AccountCreate true "Account information"
-// @Success 201 {object} common.ResponseNormal{data=models.Account} "Account created successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/user [post]
+//	@Summary		Create a new user account
+//	@Description	Create a new user account with email and password
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string										true	"Bearer Token"
+//	@Param			account			body		models.AccountCreate						true	"Account information"
+//	@Success		201				{object}	common.ResponseNormal{data=models.Account}	"Account created successfully"
+//	@Failure		400				{object}	common.ResponseError						"Invalid request body"
+//	@Failure		500				{object}	common.ResponseError						"Internal server error"
+//	@Router			/admin/user [post]
 func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 	var accountRequest models.AccountCreate
 
@@ -51,17 +51,17 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 }
 
 // ResetPasswordUser godoc
-// @Summary Reset user password
-// @Description Reset user password with email and new password
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param resetPasswordRequest body common.RequestAuth true "Reset password request"
-// @Success 200 {object} common.ResponseNormal "Password reset successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/user/reset-password [post]
+//	@Summary		Reset user password
+//	@Description	Reset user password with email and new password
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization			header		string					true	"Bearer Token"
+//	@Param			resetPasswordRequest	body		common.RequestAuth		true	"Reset password request"
+//	@Success		200						{object}	common.ResponseNormal	"Password reset successfully"
+//	@Failure		400						{object}	common.ResponseError	"Invalid request body"
+//	@Failure		500						{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/user/reset-password [post]
 func (h *UserHandler) ResetPasswordUserHandler(ctx *gin.Context) {
 	var resetPasswordRequest common.RequestAuth
 
@@ -84,18 +84,18 @@ func (h *UserHandler) ResetPasswordUserHandler(ctx *gin.Context) {
 }
 
 // GetListUser godoc
-// @Summary Get list of users
-// @Description Get a list of users with pagination
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param page query int false "Page number (default is 1)"
-// @Param limit query int false "Number of users per page (default is 10)"
-// @Success 200 {object} common.ResponseNormal{data=[]models.Account} "List of users"
-// @Failure 400 {object} common.ResponseError "Invalid query parameters"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/users [get]
+//	@Summary		Get list of users
+//	@Description	Get a list of users with pagination
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string											true	"Bearer Token"
+//	@Param			page			query		int												false	"Page number (default is 1)"
+//	@Param			limit			query		int												false	"Number of users per page (default is 10)"
+//	@Success		200				{object}	common.ResponseNormal{data=[]models.Account}	"List of users"
+//	@Failure		400				{object}	common.ResponseError							"Invalid query parameters"
+//	@Failure		500				{object}	common.ResponseError							"Internal server error"
+//	@Router			/admin/users [get]
 func (h *UserHandler) GetListUserHandler(ctx *gin.Context) {
 	var paging common.Paging
 	if err := ctx.ShouldBindQuery(&paging); err != nil {
@@ -122,18 +122,18 @@ func (h *UserHandler) GetListUserHandler(ctx *gin.Context) {
 }
 
 // GetUserById godoc
-// @Summary Get user by ID
-// @Description Get user details by user ID
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param id path string true "User ID"
-// @Success 200 {object} common.ResponseNormal{data=models.Account} "User details"
-// @Failure 400 {object} common.ResponseError "Invalid user ID"
-// @Failure 404 {object} common.ResponseError "User not found"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/user/{id} [get]
+//	@Summary		Get user by ID
+//	@Description	Get user details by user ID
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string										true	"Bearer Token"
+//	@Param			id				path		string										true	"User ID"
+//	@Success		200				{object}	common.ResponseNormal{data=models.Account}	"User details"
+//	@Failure		400				{object}	common.ResponseError						"Invalid user ID"
+//	@Failure		404				{object}	common.ResponseError						"User not found"
+//	@Failure		500				{object}	common.ResponseError						"Internal server error"
+//	@Router			/admin/user/{id} [get]
 func (h *UserHandler) GetUserByIdHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {
@@ -156,17 +156,17 @@ func (h *UserHandler) GetUserByIdHandler(ctx *gin.Context) {
 }
 
 // LockUserAccount godoc
-// @Summary Lock user account
-// @Description Lock user account by user ID
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param id path string true "User ID"
-// @Success 200 {object} common.ResponseNormal "User account locked successfully"
-// @Failure 400 {object} common.ResponseError "Invalid user ID"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/user/{id}/lock [patch]
+//	@Summary		Lock user account
+//	@Description	Lock user account by user ID
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string					true	"Bearer Token"
+//	@Param			id				path		string					true	"User ID"
+//	@Success		200				{object}	common.ResponseNormal	"User account locked successfully"
+//	@Failure		400				{object}	common.ResponseError	"Invalid user ID"
+//	@Failure		500				{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/user/{id}/lock [patch]
 func (h *UserHandler) LockUserAccountHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {
@@ -183,17 +183,17 @@ func (h *UserHandler) LockUserAccountHandler(ctx *gin.Context) {
 }
 
 // UnlockUserAccount godoc
-// @Summary Unlock user account
-// @Description Unlock user account by user ID
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param Authorization header string true "Bearer Token"
-// @Param id path string true "User ID"
-// @Success 200 {object} common.ResponseNormal "User account unlocked successfully"
-// @Failure 400 {object} common.ResponseError "Invalid user ID"
-// @Failure 500 {object} common.ResponseError "Internal server error"
-// @Router /admin/user/{id}/unlock [patch]
+//	@Summary		Unlock user account
+//	@Description	Unlock user account by user ID
+//	@Tags			User
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string					true	"Bearer Token"
+//	@Param			id				path		string					true	"User ID"
+//	@Success		200				{object}	common.ResponseNormal	"User account unlocked successfully"
+//	@Failure		400				{object}	common.ResponseError	"Invalid user ID"
+//	@Failure		500				{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/user/{id}/unlock [patch]
 func (h *UserHandler) UnlockUserAccountHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {

@@ -14,14 +14,14 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title Healthy Service API Document
-// @version 1.0
-// @description List APIs of Healthy Management Service
-// @termsOfService http://swagger.io/terms/
+//	@title			Healthy Service API Document
+//	@version		1.0
+//	@description	List APIs of Healthy Management Service
+//	@termsOfService	http://swagger.io/terms/
 
-// @host 127.0.0.1:9000
-// @BasePath /api/v1
-// @schemes http https
+//	@host		127.0.0.1:9000
+//	@BasePath	/api/v1
+//	@schemes	http https
 func main() {
 	config.LoadConfig()
 	repositories.ConnectDB()
@@ -47,8 +47,12 @@ func main() {
 
 	userService := services.NewUserServiceImpl(accountRepo)
 	userHandler := handlers.NewUserHandler(userService)
+
+	expertRepo := repositories.NewExpertRepositoryImpl(repositories.DB)
+	expertService := services.NewExpertService(expertRepo)
+	expertHandler := handlers.NewExpertHandler(expertService)
 	// 5. Đăng ký các route
-	registerRouter(router, authHandler, profileHandler, userHandler)
+	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler)
 
 	// 6. Khởi động server
 	if err := router.Run(":"+config.AppConfig.GinPort); err != nil {
@@ -61,6 +65,7 @@ func registerRouter(
 	accountHandler *handlers.AuthHandler,
 	profileHandler *handlers.ProfileHandler,
 	userHandler *handlers.UserHandler,
+	expertHandler *handlers.ExpertHandler,
 	) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -110,6 +115,11 @@ func registerRouter(
 				userGroup.GET("/user/:id", userHandler.GetUserByIdHandler)
 				userGroup.PATCH("/user/:id/lock", userHandler.LockUserAccountHandler)
 				userGroup.PATCH("/user/:id/unlock", userHandler.UnlockUserAccountHandler)
+			}
+
+			expertGroup := adminGroup.Group("")
+			{
+				expertGroup.POST("/expert",expertHandler.CreateExpertHandler)
 			}
 		}
 	}

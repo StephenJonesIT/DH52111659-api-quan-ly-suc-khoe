@@ -22,20 +22,20 @@ var allowedExts = map[string]bool{
 	".png":  true,
 }
 
-func HandleFileUpload(ctx *gin.Context, formFieldName, uploadDir string) (string, error) {
+func HandleFileUpload(ctx *gin.Context, formFieldName, uploadDir string) (string, error, bool) {
 	file, err := ctx.FormFile(formFieldName)
 	if err != nil {
-		return "", fmt.Errorf("failed to get upload file: %s", err)
+		return "", fmt.Errorf("failed to get upload file: %s", err), false
 	}
 
 	if file.Size > maxFileSize {
-		return "", fmt.Errorf("file size exceeds %dMB limit", maxFileSize >> 20)
+		return "", fmt.Errorf("file size exceeds %dMB limit", maxFileSize >> 20), true
 	}
 
 	fileExt := strings.ToLower(filepath.Ext(file.Filename))
 	// Validate file extension
 	if !allowedExts[fileExt] {
-		return "", fmt.Errorf("only .jpg, .jpeg or .png files are allowed")
+		return "", fmt.Errorf("only .jpg, .jpeg or .png files are allowed"), true
 	}
 
 	// Generate unique filename
@@ -43,16 +43,16 @@ func HandleFileUpload(ctx *gin.Context, formFieldName, uploadDir string) (string
 
 	  // Create upload directory if not exists
 	if _, err := createUploadDir(filepath.Join(uploadDir,avatar)); err != nil {
-		return "", err
+		return "", err, false
 	}
 
 	// Save file
 	savePath := getAvatarFilePath(uploadDir, filename)
 	if err := ctx.SaveUploadedFile(file, savePath); err != nil {
-		return "", fmt.Errorf("failed to save uploaded file: %w", err)
+		return "", fmt.Errorf("failed to save uploaded file: %w", err), true
 	}
 
-	return generateAvatarURL(ctx,filename), nil
+	return generateAvatarURL(ctx,filename), nil, true
 }
 
 func HandleFileDeleted(fileName string, uploadDir string) error {

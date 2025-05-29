@@ -37,8 +37,8 @@ func NewProfileHandler(profileService services.ProfileService) *ProfileHandler{
 func(h *ProfileHandler) CreateProfileHandler(ctx *gin.Context) { 
 	var profileRequest models.Profile
 
-	avatarURL, err := utils.HandleFileUpload(ctx, "image", config.AppConfig.UploadDir)
-	if err != nil {
+	avatarURL, err, isUploadFile := utils.HandleFileUpload(ctx, "image", config.AppConfig.UploadDir)
+	if err != nil && isUploadFile{
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
 		return
 	}
@@ -86,8 +86,8 @@ func(h *ProfileHandler) CreateProfileHandler(ctx *gin.Context) {
 func(h *ProfileHandler) UpdateProfileHandler(ctx *gin.Context) {
 	var updateProfileRequest models.Profile
 
-	avatarURL, err := utils.HandleFileUpload(ctx, "image", config.AppConfig.UploadDir)
-	if err != nil {
+	avatarURL, err, isUploadFile := utils.HandleFileUpload(ctx, "image", config.AppConfig.UploadDir)
+	if err != nil && isUploadFile{
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
 		return 
 	}
