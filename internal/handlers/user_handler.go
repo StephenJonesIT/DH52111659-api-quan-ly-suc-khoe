@@ -4,8 +4,8 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
@@ -27,7 +27,7 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 //	@Success		201				{object}	common.ResponseNormal{data=models.Account}	"Account created successfully"
 //	@Failure		400				{object}	common.ResponseError						"Invalid request body"
 //	@Failure		500				{object}	common.ResponseError						"Internal server error"
-//	@Router			/admin/user [post]
+//	@Router			/admin/users [post]
 func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 	var accountRequest models.AccountCreate
 
@@ -41,7 +41,7 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 		return
 	}
 
-	account, err := h.userService.CreateAccount(ctx, &accountRequest)
+	account, err := h.userService.CreateAccount(ctx, &accountRequest, "user")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
 		return
@@ -61,7 +61,7 @@ func (h *UserHandler) CreateUserHandler(ctx *gin.Context) {
 //	@Success		200						{object}	common.ResponseNormal	"Password reset successfully"
 //	@Failure		400						{object}	common.ResponseError	"Invalid request body"
 //	@Failure		500						{object}	common.ResponseError	"Internal server error"
-//	@Router			/admin/user/reset-password [post]
+//	@Router			/admin/users/reset-password [post]
 func (h *UserHandler) ResetPasswordUserHandler(ctx *gin.Context) {
 	var resetPasswordRequest common.RequestAuth
 
@@ -133,7 +133,7 @@ func (h *UserHandler) GetUsersHandler(ctx *gin.Context) {
 //	@Failure		400				{object}	common.ResponseError						"Invalid user ID"
 //	@Failure		404				{object}	common.ResponseError						"User not found"
 //	@Failure		500				{object}	common.ResponseError						"Internal server error"
-//	@Router			/admin/user/{id} [get]
+//	@Router			/admin/users/{id} [get]
 func (h *UserHandler) GetUserByIdHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {
@@ -166,7 +166,7 @@ func (h *UserHandler) GetUserByIdHandler(ctx *gin.Context) {
 //	@Success		200				{object}	common.ResponseNormal	"User account locked successfully"
 //	@Failure		400				{object}	common.ResponseError	"Invalid user ID"
 //	@Failure		500				{object}	common.ResponseError	"Internal server error"
-//	@Router			/admin/user/{id}/lock [patch]
+//	@Router			/admin/users/{id}/lock [patch]
 func (h *UserHandler) LockUserAccountHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {
@@ -193,7 +193,7 @@ func (h *UserHandler) LockUserAccountHandler(ctx *gin.Context) {
 //	@Success		200				{object}	common.ResponseNormal	"User account unlocked successfully"
 //	@Failure		400				{object}	common.ResponseError	"Invalid user ID"
 //	@Failure		500				{object}	common.ResponseError	"Internal server error"
-//	@Router			/admin/user/{id}/unlock [patch]
+//	@Router			/admin/users/{id}/unlock [patch]
 func (h *UserHandler) UnlockUserAccountHandler(ctx *gin.Context) {
 	userId := ctx.Param("id")
 	if userId == "" {
@@ -207,4 +207,133 @@ func (h *UserHandler) UnlockUserAccountHandler(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, common.NewResponseNormal("User account unlocked successfully", nil))
+}
+
+// CreateExpertAccount godoc
+//	@Summary		Create a new expert account
+//	@Description	Create a new expert account with email and password
+//	@Tags			Expert
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string										true	"Bearer Token"
+//	@Param			account			body		models.AccountCreate						true	"Account information"
+//	@Success		201				{object}	common.ResponseNormal{data=models.Account}	"Create expert account successfully"
+//	@Failure		400				{object}	common.ResponseError						"Invalid request body"
+//	@Failure		401				{object}	common.ResponseError						"Invalid token"
+//	@Failure		403				{object}	common.ResponseError						"You do not have permission to access this resource"
+//	@Failure		500				{object}	common.ResponseError						"Internal server error"
+//	@Router			/admin/experts/accounts [post]
+func(h *UserHandler) CreateExpertAccountHandler(ctx *gin.Context){
+	var accountRequest models.AccountCreate
+
+	if err := ctx.ShouldBindJSON(&accountRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(accountRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	account, err := h.userService.CreateAccount(ctx, &accountRequest, "expert")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, common.NewResponseNormal("Create expert account successfully", account))
+}
+
+// ResetPasswordUser godoc
+//	@Summary		Reset expert password
+//	@Description	Reset expert password with email and new password
+//	@Tags			Expert
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization			header		string					true	"Bearer Token"
+//	@Param			resetPasswordRequest	body		common.RequestAuth		true	"Reset password request"
+//	@Success		200						{object}	common.ResponseNormal	"Password reset successfully"
+//	@Failure		400						{object}	common.ResponseError	"Invalid request body"
+//	@Failure		401						{object}	common.ResponseError	"Invalid token"
+//	@Failure		403						{object}	common.ResponseError	"You do not have permission to access this resource"
+//	@Failure		500						{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/experts/accounts/reset-password [post]
+func (h *UserHandler) ResetPasswordExpertHandler(ctx *gin.Context) {
+	var resetPasswordRequest common.RequestAuth
+
+	if err := ctx.ShouldBindJSON(&resetPasswordRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+		return
+	}
+
+	if err := common.ValidateRequest(resetPasswordRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+		return
+	}
+
+	if err := h.userService.ResetPassword(ctx, &resetPasswordRequest); err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseNormal("Reset password successfully", nil))
+}
+
+// LockExpertAccount godoc
+//	@Summary		Lock expert account
+//	@Description	Lock expert account by expert ID
+//	@Tags			Expert
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string					true	"Bearer Token"
+//	@Param			id				path		string					true	"Expert ID"
+//	@Success		200				{object}	common.ResponseNormal	"Expert account locked successfully"
+//	@Failure		400				{object}	common.ResponseError	"Expert ID is required"
+//	@Failure		401				{object}	common.ResponseError	"Invalid token"
+//	@Failure		403				{object}	common.ResponseError	"You do not have permission to access this resource"
+//	@Failure		500				{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/experts/accounts/{id}/lock [patch]
+func (h *UserHandler) LockExpertAccountHandler(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	if userId == "" {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError("Expert ID is required"))
+		return
+	}
+
+	if err := h.userService.LockAccount(ctx, userId); err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseNormal("Expert account locked successfully", nil))
+}
+
+// UnlockExpertAccount godoc
+//	@Summary		Unlock expert account
+//	@Description	Unlock expert account by expert ID
+//	@Tags			Expert
+//	@Accept			json
+//	@Produce		json
+//	@Param			Authorization	header		string					true	"Bearer Token"
+//	@Param			id				path		string					true	"Expert ID"
+//	@Success		200				{object}	common.ResponseNormal	"Expert account unlocked successfully"
+//	@Failure		400				{object}	common.ResponseError	"Expert ID is required"
+//	@Failure		401				{object}	common.ResponseError	"Invalid token"
+//	@Failure		403				{object}	common.ResponseError	"You do not have permission to access this resource"
+//	@Failure		500				{object}	common.ResponseError	"Internal server error"
+//	@Router			/admin/experts/accounts/{id}/unlock [patch]
+func (h *UserHandler) UnlockExpertAccountHandler(ctx *gin.Context) {
+	userId := ctx.Param("id")
+	if userId == "" {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError("Expert ID is required"))
+		return
+	}
+
+	if err := h.userService.UnlockAccount(ctx, userId); err != nil {
+		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseNormal("Expert account unlocked successfully", nil))
 }

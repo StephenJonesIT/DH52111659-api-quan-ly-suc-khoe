@@ -25,7 +25,7 @@ func JWTAuthMiddleware(tokenService utils.TokenService, requireRoles ...string) 
 		tokenString := authHeader[len("Bearer "):]
 		claims, err := tokenService.VerifyToken(tokenString)
 		if err != nil {
-			ctx.JSON(401, common.NewResponseError("Invalid token"))
+			ctx.JSON(http.StatusUnauthorized, common.NewResponseError("Invalid token"))
 			ctx.Abort()
 			return
 		}

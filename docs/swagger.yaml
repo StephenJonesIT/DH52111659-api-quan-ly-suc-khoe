@@ -351,11 +351,11 @@ paths:
       summary: Update expert information
       tags:
       - Expert
-  /admin/user:
+  /admin/experts/accounts:
     post:
       consumes:
       - application/json
-      description: Create a new user account with email and password
+      description: Create a new expert account with email and password
       parameters:
       - description: Bearer Token
         in: header
@@ -372,7 +372,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: Account created successfully
+          description: Create expert account successfully
           schema:
             allOf:
             - $ref: '#/definitions/common.ResponseNormal'
@@ -384,68 +384,33 @@ paths:
           description: Invalid request body
           schema:
             $ref: '#/definitions/common.ResponseError'
-        "500":
-          description: Internal server error
+        "401":
+          description: Invalid token
           schema:
             $ref: '#/definitions/common.ResponseError'
-      summary: Create a new user account
-      tags:
-      - User
-  /admin/user/{id}:
-    get:
-      consumes:
-      - application/json
-      description: Get user details by user ID
-      parameters:
-      - description: Bearer Token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: User ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: User details
-          schema:
-            allOf:
-            - $ref: '#/definitions/common.ResponseNormal'
-            - properties:
-                data:
-                  $ref: '#/definitions/models.Account'
-              type: object
-        "400":
-          description: Invalid user ID
-          schema:
-            $ref: '#/definitions/common.ResponseError'
-        "404":
-          description: User not found
+        "403":
+          description: You do not have permission to access this resource
           schema:
             $ref: '#/definitions/common.ResponseError'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/common.ResponseError'
-      summary: Get user by ID
+      summary: Create a new expert account
       tags:
-      - User
-  /admin/user/{id}/lock:
+      - Expert
+  /admin/experts/accounts/{id}/lock:
     patch:
       consumes:
       - application/json
-      description: Lock user account by user ID
+      description: Lock expert account by expert ID
       parameters:
       - description: Bearer Token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: User ID
+      - description: Expert ID
         in: path
         name: id
         required: true
@@ -454,32 +419,40 @@ paths:
       - application/json
       responses:
         "200":
-          description: User account locked successfully
+          description: Expert account locked successfully
           schema:
             $ref: '#/definitions/common.ResponseNormal'
         "400":
-          description: Invalid user ID
+          description: Expert ID is required
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: You do not have permission to access this resource
           schema:
             $ref: '#/definitions/common.ResponseError'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/common.ResponseError'
-      summary: Lock user account
+      summary: Lock expert account
       tags:
-      - User
-  /admin/user/{id}/unlock:
+      - Expert
+  /admin/experts/accounts/{id}/unlock:
     patch:
       consumes:
       - application/json
-      description: Unlock user account by user ID
+      description: Unlock expert account by expert ID
       parameters:
       - description: Bearer Token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: User ID
+      - description: Expert ID
         in: path
         name: id
         required: true
@@ -488,25 +461,33 @@ paths:
       - application/json
       responses:
         "200":
-          description: User account unlocked successfully
+          description: Expert account unlocked successfully
           schema:
             $ref: '#/definitions/common.ResponseNormal'
         "400":
-          description: Invalid user ID
+          description: Expert ID is required
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: You do not have permission to access this resource
           schema:
             $ref: '#/definitions/common.ResponseError'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/common.ResponseError'
-      summary: Unlock user account
+      summary: Unlock expert account
       tags:
-      - User
-  /admin/user/reset-password:
+      - Expert
+  /admin/experts/accounts/reset-password:
     post:
       consumes:
       - application/json
-      description: Reset user password with email and new password
+      description: Reset expert password with email and new password
       parameters:
       - description: Bearer Token
         in: header
@@ -530,13 +511,21 @@ paths:
           description: Invalid request body
           schema:
             $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Invalid token
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: You do not have permission to access this resource
+          schema:
+            $ref: '#/definitions/common.ResponseError'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/common.ResponseError'
-      summary: Reset user password
+      summary: Reset expert password
       tags:
-      - User
+      - Expert
   /admin/users:
     get:
       consumes:
@@ -579,6 +568,191 @@ paths:
           schema:
             $ref: '#/definitions/common.ResponseError'
       summary: Get list of users
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with email and password
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Account information
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/models.AccountCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Account created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Account'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Create a new user account
+      tags:
+      - User
+  /admin/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user details by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Account'
+              type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Get user by ID
+      tags:
+      - User
+  /admin/users/{id}/lock:
+    patch:
+      consumes:
+      - application/json
+      description: Lock user account by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User account locked successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Lock user account
+      tags:
+      - User
+  /admin/users/{id}/unlock:
+    patch:
+      consumes:
+      - application/json
+      description: Unlock user account by user ID
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User account unlocked successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Unlock user account
+      tags:
+      - User
+  /admin/users/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password with email and new password
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Reset password request
+        in: body
+        name: resetPasswordRequest
+        required: true
+        schema:
+          $ref: '#/definitions/common.RequestAuth'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password reset successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      summary: Reset user password
       tags:
       - User
   /auth/login:

@@ -10,7 +10,7 @@ import (
 )
 
 type UserService interface {
-	CreateAccount(ctx context.Context, account *models.AccountCreate) (*models.Account, error)
+	CreateAccount(ctx context.Context, account *models.AccountCreate, role string) (*models.Account, error)
 	ResetPassword(ctx context.Context, resetPasswordRequest *common.RequestAuth) error
 	GetAllAccounts(ctx context.Context, paging *common.Paging, cond map[string]interface{}) ([]*models.Account, error)
 	GetAccountById(ctx context.Context, id string) (*models.Account, error)
@@ -26,7 +26,7 @@ func NewUserServiceImpl(accountRepo repositories.AccountRepository) *UserService
 	return &UserServiceImpl{accountRepository: accountRepo}
 }
 
-func(s *UserServiceImpl) CreateAccount(ctx context.Context, accountRequest *models.AccountCreate) (*models.Account, error){
+func(s *UserServiceImpl) CreateAccount(ctx context.Context, accountRequest *models.AccountCreate, role string) (*models.Account, error){
 	// Check if the account already exists
 	existsAccount, err := s.accountRepository.GetByEmail(ctx, accountRequest.Email)
 	if err != nil {
@@ -47,7 +47,7 @@ func(s *UserServiceImpl) CreateAccount(ctx context.Context, accountRequest *mode
 	account := &models.Account{
 		Email:    accountRequest.Email,
 		Password: hashedPassword,
-		Role:     "user",
+		Role:     role,
 		IsVerified: true,
 		AccountStatus: true,
 	}

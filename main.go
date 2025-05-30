@@ -107,14 +107,14 @@ func registerRouter(
 		adminGroup := api.Group("/admin")
 		{
 			adminGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY), "admin"))
-			userGroup := adminGroup.Group("")
+			userGroup := adminGroup.Group("/users")
 			{
-				userGroup.POST("/user", userHandler.CreateUserHandler)
-				userGroup.POST("/user/reset-password", userHandler.ResetPasswordUserHandler)
-				userGroup.GET("/users", userHandler.GetUsersHandler)
-				userGroup.GET("/user/:id", userHandler.GetUserByIdHandler)
-				userGroup.PATCH("/user/:id/lock", userHandler.LockUserAccountHandler)
-				userGroup.PATCH("/user/:id/unlock", userHandler.UnlockUserAccountHandler)
+				userGroup.POST("", userHandler.CreateUserHandler)
+				userGroup.POST("/reset-password", userHandler.ResetPasswordUserHandler)
+				userGroup.GET("", userHandler.GetUsersHandler)
+				userGroup.GET("/:id", userHandler.GetUserByIdHandler)
+				userGroup.PATCH("/:id/lock", userHandler.LockUserAccountHandler)
+				userGroup.PATCH("/:id/unlock", userHandler.UnlockUserAccountHandler)
 			}
 
 			expertGroup := adminGroup.Group("experts")
@@ -123,6 +123,14 @@ func registerRouter(
 				expertGroup.GET("", expertHandler.GetExpertsHandler)
 				expertGroup.PUT("/:id", expertHandler.UpdateExpertHandler)
 				expertGroup.DELETE("/:id", expertHandler.DeleteExpertHandler)
+				
+				accountGroup := expertGroup.Group("/accounts")
+				{
+					accountGroup.POST("", userHandler.CreateExpertAccountHandler)
+					accountGroup.POST("/reset-password", userHandler.ResetPasswordExpertHandler)
+					accountGroup.PATCH("/:id/lock", userHandler.LockExpertAccountHandler)
+					accountGroup.PATCH("/:id/unlock", userHandler.UnlockExpertAccountHandler)
+				}
 			}
 		}
 	}
