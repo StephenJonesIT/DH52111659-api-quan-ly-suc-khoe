@@ -177,6 +177,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter is deleted (default is false)
+        in: query
+        name: status
+        type: boolean
       produces:
       - application/json
       responses:

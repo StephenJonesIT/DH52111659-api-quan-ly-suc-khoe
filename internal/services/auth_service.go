@@ -113,6 +113,10 @@ func (s *AuthServiceImpl) Login(ctx context.Context, loginRequest *common.Reques
 		return nil, "", "", fmt.Errorf("tài khoản chưa được xác thực")
 	}
 
+	if !account.AccountStatus {
+		return nil, "", "", fmt.Errorf("tài khoản đã bị khóa")
+	}
+
 	if !utils.ComparePasswordHash(account.Password, loginRequest.Password) {
 		return nil, "", "", fmt.Errorf("mật khẩu không chính xác")
 	}

@@ -11,7 +11,7 @@ import (
 
 type ExpertService interface {
 	CreateExpert(ctx context.Context, createExpertRequest *models.ExpertRequest) (*models.ExpertRequest, error)
-	GetAllExperts(ctx context.Context, paging *common.Paging) ([]*models.Expert, error)
+	GetAllExperts(ctx context.Context, paging *common.Paging, filter *common.Filter) ([]*models.Expert, error)
 	UpdateExpert(ctx context.Context, expertID int, expert *models.ExpertRequest) (*models.Expert, error)
 	DeleteExpert(ctx context.Context, expertID int) (error)
 }
@@ -45,12 +45,22 @@ func (s *ExpertServiceImpl) CreateExpert(ctx context.Context, createExpertReques
 func (s *ExpertServiceImpl) GetAllExperts(
 	ctx context.Context,
 	paging *common.Paging,
+	filter *common.Filter,
 ) ([]*models.Expert, error) {
 	paging.ProcessPaging()
 
+	cond := map[string]interface{}{}
+	if filter != nil {
+		cond["is_deleted"] = filter.Status
+	}
+
+	if len(cond) == 0 {
+		cond["is_deleted"] = false
+	}
+
 	experts, err := s.expertRepo.GetExperts(
 		ctx,
-		map[string]interface{}{"is_deleted": false},
+		cond,
 		paging,
 	)
 

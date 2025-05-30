@@ -53,6 +53,12 @@ const docTemplate = `{
                         "description": "Number of experts per page (default is 10)",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter is deleted (default is false)",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {

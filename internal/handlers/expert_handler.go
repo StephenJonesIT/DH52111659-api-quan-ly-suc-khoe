@@ -79,6 +79,7 @@ func(h *ExpertHandler) CreateExpertHandler(ctx *gin.Context) {
 // @Param Authorization header string true "Bearer token"
 // @Param page query int false "Page number (default is 1)"
 // @Param limit query int false "Number of experts per page (default is 10)"
+// @Param status query bool false "Filter is deleted (default is false)"
 // @Success 200 {object} common.ResponseNormal{data=[]models.Expert} "List of expert"
 // @Failure 400 {object} common.ResponseError "Invalid query parameters"
 // @Failure 401 {object} common.ResponseError "Invalid token"
@@ -86,13 +87,19 @@ func(h *ExpertHandler) CreateExpertHandler(ctx *gin.Context) {
 // @Failure 500 {object} common.ResponseError "Internal server error"
 // @Router /admin/experts [get]
 func(h *ExpertHandler) GetExpertsHandler(ctx *gin.Context){ 
-    var Paging common.Paging
-    if err := ctx.ShouldBindQuery(&Paging); err != nil {
+    var paging common.Paging
+    if err := ctx.ShouldBindQuery(&paging); err != nil {
         ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
         return
     }
 
-    expertsResponse, err := h.expertService.GetAllExperts(ctx, &Paging)
+	var filter common.Filter
+	if err := ctx.ShouldBindQuery(&filter); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
+        return
+	}
+
+    expertsResponse, err := h.expertService.GetAllExperts(ctx, &paging, &filter)
     if err != nil {
         ctx.JSON(http.StatusInternalServerError,common.NewResponseError(err.Error()))
         return 
@@ -116,7 +123,7 @@ func(h *ExpertHandler) GetExpertsHandler(ctx *gin.Context){
 // @Failure 400 {object} common.ResponseError "Invalid input data"
 // @Failure 500 {object} common.ResponseError "Internal server error during expert update"
 // @Router /admin/experts/{id} [put]
-func(h *ExpertHandler) UpdateExpertHandler(ctx *gin.Context){
+func (h *ExpertHandler) UpdateExpertHandler(ctx *gin.Context) {
 	var expertRequest models.ExpertRequest
 
 	avatarURL, err, isUploadFile := utils.HandleFileUpload(ctx, "image", config.AppConfig.UploadDir)
