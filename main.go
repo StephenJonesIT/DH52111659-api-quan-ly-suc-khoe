@@ -49,7 +49,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 
 	expertRepo := repositories.NewExpertRepositoryImpl(repositories.DB)
-	expertService := services.NewExpertService(expertRepo)
+	expertService := services.NewExpertService(expertRepo, accountRepo)
 	expertHandler := handlers.NewExpertHandler(expertService)
 	// 5. Đăng ký các route
 	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler)
@@ -100,7 +100,7 @@ func registerRouter(
 			{
 				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
 				protected.POST("",profileHandler.CreateProfileHandler)
-				protected.PUT(":id", profileHandler.UpdateProfileHandler)
+				protected.PUT("/:id", profileHandler.UpdateProfileHandler)
 			}
 		}
 
@@ -117,10 +117,12 @@ func registerRouter(
 				userGroup.PATCH("/user/:id/unlock", userHandler.UnlockUserAccountHandler)
 			}
 
-			expertGroup := adminGroup.Group("")
+			expertGroup := adminGroup.Group("experts")
 			{
-				expertGroup.POST("/expert",expertHandler.CreateExpertHandler)
-				expertGroup.GET("/experts", expertHandler.GetExpertsHandler)
+				expertGroup.POST("",expertHandler.CreateExpertHandler)
+				expertGroup.GET("", expertHandler.GetExpertsHandler)
+				expertGroup.PUT("/:id", expertHandler.UpdateExpertHandler)
+				expertGroup.DELETE("/:id", expertHandler.DeleteExpertHandler)
 			}
 		}
 	}

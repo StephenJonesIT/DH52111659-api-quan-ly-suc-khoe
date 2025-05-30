@@ -16,7 +16,93 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/admin/expert": {
+        "/admin/experts": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Returns a list of experts available in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Expert"
+                ],
+                "summary": "Retrieve a list of experts",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number (default is 1)",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of experts per page (default is 10)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of expert",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.ResponseNormal"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Expert"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid token",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "You do not have permission to access this resource",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -102,16 +188,16 @@ const docTemplate = `{
                 }
             }
         },
-        "/admin/experts": {
-            "get": {
+        "/admin/experts/{id}": {
+            "put": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Returns a list of experts available in the system",
+                "description": "Updates an expert's details based on their ID.",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -119,8 +205,15 @@ const docTemplate = `{
                 "tags": [
                     "Expert"
                 ],
-                "summary": "Retrieve a list of experts",
+                "summary": "Update expert information",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Expert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Bearer token",
@@ -129,60 +222,91 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Page number (default is 1)",
-                        "name": "page",
-                        "in": "query"
+                        "type": "file",
+                        "description": "Expert profile picture",
+                        "name": "image",
+                        "in": "formData"
                     },
                     {
-                        "type": "integer",
-                        "description": "Number of experts per page (default is 10)",
-                        "name": "limit",
-                        "in": "query"
+                        "type": "string",
+                        "description": "Expert information in JSON format",
+                        "name": "metadata",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of expert",
+                        "description": "Expert updated successfully",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/common.ResponseNormal"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/models.Expert"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/common.ResponseNormal"
                         }
                     },
                     "400": {
-                        "description": "Invalid query parameters",
-                        "schema": {
-                            "$ref": "#/definitions/common.ResponseError"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid token",
-                        "schema": {
-                            "$ref": "#/definitions/common.ResponseError"
-                        }
-                    },
-                    "403": {
-                        "description": "You do not have permission to access this resource",
+                        "description": "Invalid input data",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "Internal server error during expert update",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Soft delete an expert profile by ID. Optionally deactivate the linked user account.",
+                "tags": [
+                    "Expert"
+                ],
+                "summary": "Delete an expert profile (soft delete)",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Expert ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content - Successfully deleted"
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid expert ID",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Missing or invalid API key",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - User does not have permission",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }

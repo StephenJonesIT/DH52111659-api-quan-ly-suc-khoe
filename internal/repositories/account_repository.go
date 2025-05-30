@@ -15,6 +15,7 @@ type AccountRepository interface {
 	GetAccountById(ctx context.Context, id string) (*models.Account, error)
 	GetDB() *gorm.DB
 	GetAccounts(ctx context.Context, paging *common.Paging,cond map[string]interface{}) ([]*models.Account, error)
+	DeactivateAccount(ctx context.Context, tx *gorm.DB,id string) error
 }
 
 
@@ -102,3 +103,11 @@ func(repo *AccountRepoImpl) GetAccounts(ctx context.Context, paging *common.Pagi
 	return accounts, nil
 }
 
+func(repo *AccountRepoImpl) DeactivateAccount(ctx context.Context, tx *gorm.DB,accountID string) error{
+	if err := tx.Table(models.Account{}.TableName()).
+		Where("id = ?", accountID).
+		Update("account_status",false).Error; err != nil {
+		return err
+	}
+	return nil
+}

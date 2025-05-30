@@ -158,59 +158,6 @@ info:
   title: Healthy Service API Document
   version: "1.0"
 paths:
-  /admin/expert:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create expert profile with file image and json expert data
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: Expert image file (max 10MB)
-        in: formData
-        name: image
-        type: file
-      - description: Expert data in JSON format
-        in: formData
-        name: metadata
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Expert created successfully
-          schema:
-            allOf:
-            - $ref: '#/definitions/common.ResponseNormal'
-            - properties:
-                data:
-                  type: object
-              type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/common.ResponseError'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/common.ResponseError'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/common.ResponseError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/common.ResponseError'
-      security:
-      - ApiKeyAuth: []
-      summary: Create a new expert
-      tags:
-      - Expert
   /admin/experts:
     get:
       consumes:
@@ -263,6 +210,141 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Retrieve a list of experts
+      tags:
+      - Expert
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create expert profile with file image and json expert data
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Expert image file (max 10MB)
+        in: formData
+        name: image
+        type: file
+      - description: Expert data in JSON format
+        in: formData
+        name: metadata
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Expert created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new expert
+      tags:
+      - Expert
+  /admin/experts/{id}:
+    delete:
+      description: Soft delete an expert profile by ID. Optionally deactivate the
+        linked user account.
+      parameters:
+      - description: Expert ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content - Successfully deleted
+        "400":
+          description: Bad Request - Invalid expert ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized - Missing or invalid API key
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden - User does not have permission
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an expert profile (soft delete)
+      tags:
+      - Expert
+    put:
+      consumes:
+      - multipart/form-data
+      description: Updates an expert's details based on their ID.
+      parameters:
+      - description: Expert ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Expert profile picture
+        in: formData
+        name: image
+        type: file
+      - description: Expert information in JSON format
+        in: formData
+        name: metadata
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Expert updated successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error during expert update
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update expert information
       tags:
       - Expert
   /admin/user:
