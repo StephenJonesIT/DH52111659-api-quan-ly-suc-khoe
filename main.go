@@ -8,7 +8,7 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
 	"DH52111659-api-quan-ly-suc-khoe/utils"
-
+ 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -51,11 +51,20 @@ func main() {
 	expertRepo := repositories.NewExpertRepositoryImpl(repositories.DB)
 	expertService := services.NewExpertService(expertRepo, accountRepo)
 	expertHandler := handlers.NewExpertHandler(expertService)
+
+	programRepo := repositories.NewProgramRepository(repositories.DB)
+	programService := services.NewProgramService(programRepo, expertRepo)
+	programHandler := handlers.NewProgramHandler(programService)
+
+	activityRepo := repositories.NewActivityRepositoryImpl(repositories.DB)
+	activityService := services.NewActivityService(activityRepo, expertRepo)
+	activityHandler := handlers.NewActivityHandler(activityService)
+
 	// 5. Đăng ký các route
-	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler)
+	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler, programHandler, activityHandler)
 
 	// 6. Khởi động server
-	if err := router.Run(":"+config.AppConfig.GinPort); err != nil {
+	if err := router.Run("0.0.0.0:"+config.AppConfig.GinPort); err != nil {
 		panic(err)
 	}
 }
@@ -66,9 +75,19 @@ func registerRouter(
 	profileHandler *handlers.ProfileHandler,
 	userHandler *handlers.UserHandler,
 	expertHandler *handlers.ExpertHandler,
+	programHandler *handlers.ProgramHandler,
+	activityHandler *handlers.ActivityHandler,
 	) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"*"}, // Change "*" to specific domains for security
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        AllowCredentials: true,
+    }))
+
 
 	api := router.Group("/api/v1")
 	{
@@ -131,6 +150,20 @@ func registerRouter(
 					accountGroup.PATCH("/:id/lock", userHandler.LockExpertAccountHandler)
 					accountGroup.PATCH("/:id/unlock", userHandler.UnlockExpertAccountHandler)
 				}
+			}
+		}
+
+		expertGroup := api.Group("/expert")
+		{
+			expertGroup.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY), "expert"))
+			program := expertGroup.Group("/programs")
+			{
+				program.POST("", programHandler.CreateProgramHandler)
+			}
+
+			activity := expertGroup.Group("/activities")
+			{
+				activity.POST("", activityHandler.CreateActivityHandler)
 			}
 		}
 	}

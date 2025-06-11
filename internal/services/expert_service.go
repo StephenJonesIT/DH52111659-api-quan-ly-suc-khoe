@@ -94,7 +94,6 @@ func (s *ExpertServiceImpl) UpdateExpert(
 	//Assign value to expert
 	expertExists.FullName 			= expertRequest.FullName
 	expertExists.DateOfBirth 		= expertRequest.DateOfBirth
-	expertExists.Email 				= expertRequest.Email
 	expertExists.Gender 			= expertRequest.Gender
 	expertExists.TelephoneNumber 	= expertRequest.TelephoneNumber
 	expertExists.AvatarURL			= expertRequest.AvatarURL

@@ -123,6 +123,19 @@ definitions:
     - email
     - password
     type: object
+  models.Activity:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      id:
+        type: string
+      name:
+        type: string
+      point:
+        type: integer
+    type: object
   models.Expert:
     properties:
       account_id:
@@ -149,6 +162,27 @@ definitions:
     - date_of_birth
     - email
     - full_name
+    type: object
+  models.Program:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      duration_type:
+        type: string
+      expert_id:
+        type: integer
+      name:
+        type: string
+      program_id:
+        type: string
+      total_day:
+        type: integer
+    required:
+    - description
+    - duration_type
+    - name
     type: object
 host: 127.0.0.1:9000
 info:
@@ -1030,6 +1064,106 @@ paths:
       summary: Verify OTP for account
       tags:
       - Auth
+  /expert/activities:
+    post:
+      consumes:
+      - application/json
+      description: Create a new activity
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Activity data
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/models.Activity'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Activity created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Activity'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new activity
+      tags:
+      - Activity
+  /expert/programs:
+    post:
+      consumes:
+      - application/json
+      description: Create a new program
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Program data
+        in: body
+        name: program
+        required: true
+        schema:
+          $ref: '#/definitions/models.Program'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Program created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  type: object
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new program
+      tags:
+      - Program
   /profile:
     post:
       consumes:

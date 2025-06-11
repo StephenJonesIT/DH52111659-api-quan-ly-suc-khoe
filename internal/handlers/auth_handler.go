@@ -4,6 +4,7 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -88,6 +89,8 @@ func(h *AuthHandler) RegisterVerifyOTPHandler(ctx *gin.Context) {
 //	@Router			/auth/login [post]
 func(h *AuthHandler) LoginHandler(ctx *gin.Context) {
 	var loginRequest common.RequestAuth
+ 	clientIP := ctx.ClientIP()
+    fmt.Println("Client IP:", clientIP)
 
 	if err := ctx.ShouldBindJSON(&loginRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))

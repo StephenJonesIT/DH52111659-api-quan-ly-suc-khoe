@@ -10,7 +10,7 @@ import (
 type ProfileService interface {
 	GetProfileByID(ctx context.Context, id string) (*models.Profile, error)
 	CreateProfile(ctx context.Context, profileRequest *models.Profile) (*models.Profile, error)
-	UpdateProfile(ctx context.Context, cond string, profileRequest *models.Profile) (*models.Profile, error)
+	UpdateProfile(ctx context.Context, cond int, profileRequest *models.Profile) (*models.Profile, error)
 }
 
 type ProfileServiceImpl struct {
@@ -24,7 +24,7 @@ func NewProfileServiceImpl(repo repositories.ProfileRepository) *ProfileServiceI
 }
 
 func(s *ProfileServiceImpl) GetProfileByID(ctx context.Context, id string) (*models.Profile, error){
-	profile, err := s.repo.GetProfileByID(ctx, id)
+	profile, err := s.repo.GetProfileByID(ctx, map[string]interface{}{"account_id": id})
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func(s *ProfileServiceImpl) GetProfileByID(ctx context.Context, id string) (*mod
 
 func(s *ProfileServiceImpl) CreateProfile(ctx context.Context, profileRequest *models.Profile) (*models.Profile, error){
 	//check if the profile exists 
-	if _, err := s.repo.GetProfileByID(ctx, profileRequest.UserID.String()); err != nil {
+	if _, err := s.repo.GetProfileByID(ctx, map[string]interface{}{"account_id":profileRequest.UserID}); err != nil {
 		return nil, err
 	}
 
@@ -46,16 +46,15 @@ func(s *ProfileServiceImpl) CreateProfile(ctx context.Context, profileRequest *m
 	if err != nil{
 		return nil, err
 	}
-
 	return profile, nil
 }
 
 func(s *ProfileServiceImpl) UpdateProfile(
 	ctx context.Context, 
-	cond string, 
+	cond int, 
 	profileRequest *models.Profile,
 	) (*models.Profile, error){
-		profile, err := s.repo.GetProfileByID(ctx, cond); 
+		profile, err := s.repo.GetProfileByID(ctx, map[string]interface{}{"profile_id": cond}); 
 		if err != nil {
 			return nil, fmt.Errorf("profile not found")
 		}
@@ -64,6 +63,9 @@ func(s *ProfileServiceImpl) UpdateProfile(
 		profile.DayOfBirth 	= profileRequest.DayOfBirth
 		profile.Gender 		= profileRequest.Gender
 		profile.AvatarURL 	= profileRequest.AvatarURL
+		profile.Weight 		= profileRequest.Weight
+		profile.Height 		= profileRequest.Height
+
 	
 		if err := s.repo.Update(ctx, map[string]interface{}{"user_id":cond}, profile); err != nil {
 			return nil, fmt.Errorf("error updating profile: %w", err)

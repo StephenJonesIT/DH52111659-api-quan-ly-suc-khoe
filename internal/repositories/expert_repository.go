@@ -4,6 +4,8 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"context"
+
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -14,6 +16,7 @@ type ExpertRepository interface {
 	Update(ctx context.Context, cond map[string]interface{}, updateValue models.Expert) error
 	GetExpertByID(ctx context.Context, expertID int) (*models.Expert, error)
 	UpdateIsDeleted(ctx context.Context, tx *gorm.DB, expertID int) error
+	GetExpertByUserID(ctx context.Context, userID uuid.UUID) (*models.Expert, error)
 }
 
 type ExpertRepositoryImpl struct {
@@ -31,6 +34,20 @@ func (repo *ExpertRepositoryImpl) Create(ctx context.Context, expert *models.Exp
 		return err
 	}
 	return nil
+}
+
+func (repo *ExpertRepositoryImpl) GetExpertByUserID(ctx context.Context, userID uuid.UUID) (*models.Expert, error) {
+	var expert models.Expert
+	if err := repo.DB.WithContext(ctx).
+		Table(models.Expert{}.TableName()).
+		Where("account_id = ?", userID).
+		First(&expert).Error; err != nil {	
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil // No expert found for this user ID
+		}
+		return nil, err // Return the error if something else went wrong
+	}
+	return &expert, nil // Return the found expert
 }
 
 func (repo *ExpertRepositoryImpl) GetExperts(

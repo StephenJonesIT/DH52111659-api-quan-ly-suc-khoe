@@ -8,7 +8,7 @@ import (
 )
 
 type ProfileRepository interface {
-	GetProfileByID(ctx context.Context, profileID string) (*models.Profile, error)
+	GetProfileByID(ctx context.Context, cond map[string]interface{}) (*models.Profile, error)
 	Create(ctx context.Context, profile *models.Profile) (*models.Profile, error)
 	Update(ctx context.Context, cond map[string]interface{}, profile *models.Profile) (error)
 }
@@ -23,12 +23,12 @@ func NewProfileRepoImpl(db *gorm.DB) *ProfileRepositoryImpl {
 	}
 }
 
-func(r *ProfileRepositoryImpl) GetProfileByID(ctx context.Context, profileID string) (*models.Profile, error){
+func(r *ProfileRepositoryImpl) GetProfileByID(ctx context.Context, cond map[string]interface{}) (*models.Profile, error){
 	var profile models.Profile
 
 	if err := r.DB.WithContext(ctx).
 		Table(models.Profile{}.TableName()).
-		Where("user_id = ?", profileID).
+		Where(cond).
 		First(&profile).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, nil
