@@ -12,7 +12,7 @@ import (
 
 type ActivityService interface {
 	CreateActivity(ctx context.Context, cond uuid.UUID, activity *models.Activity) (*models.Activity, error)
-	GetActivities(ctx context.Context, cond map[string]interface{}, paging *common.Paging) ([]*models.Activity, error)
+	GetActivities(ctx context.Context, expertID uuid.UUID, paging *common.Paging) ([]*models.Activity, error)
 }
 
 type ActivityServiceImpl struct {
@@ -57,11 +57,24 @@ func (s *ActivityServiceImpl) CreateActivity(ctx context.Context, cond uuid.UUID
 
 func (s *ActivityServiceImpl) GetActivities(
 	ctx context.Context,
-	cond map[string]interface{},
+	expertID uuid.UUID,
 	paging *common.Paging,
 ) ([]*models.Activity, error){
 	paging.ProcessPaging()
 
+	expert, err := s.expertRepository.GetExpertByUserID(ctx, expertID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving expert: %w", err)
+	}
+
+	if expert == nil {
+		return nil, fmt.Errorf("expert not found for user ID: %s", expertID)
+	}
+
+	cond := map[string]interface{}{
+		"expert_id": expert.ExpertID,
+	}
+	
 	activities, err := s.activityRepository.GetActivities(ctx, cond, paging)
 	if err != nil {
 		return nil, err

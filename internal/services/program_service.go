@@ -11,7 +11,7 @@ import (
 )
 
 type ProgramService interface {
-	GetProgramByID(ctx context.Context, cond int) (*models.Program, error)
+	GetProgramByID(ctx context.Context, cond uuid.UUID) (*models.Program, error)
 	CreateProgram(ctx context.Context, cond uuid.UUID,item *models.Program) (*models.Program, error)
 }
 
@@ -27,7 +27,7 @@ func NewProgramService(programRepo repositories.ProgramRepository, experRepo rep
 	}
 }
 
-func (s *ProgramServiceImpl) GetProgramByID(ctx context.Context, cond int) (*models.Program, error) {
+func (s *ProgramServiceImpl) GetProgramByID(ctx context.Context, cond uuid.UUID) (*models.Program, error) {
 	program, err := s.programRepo.GetProgramByID(ctx, cond)
 	if err != nil {
 		return nil, err

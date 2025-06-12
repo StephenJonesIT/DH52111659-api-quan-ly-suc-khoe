@@ -1387,6 +1387,100 @@ const docTemplate = `{
             }
         },
         "/expert/activities": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get activities for an expert",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Activity"
+                ],
+                "summary": "Get activities for an expert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activities retrieved successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.ResponseNormal"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Activity"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "No activities found",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1517,6 +1611,88 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "type": "object"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/expert/programs/{program_id}/schedules": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new schedule for a program",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Schedule"
+                ],
+                "summary": "Create a new schedule",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Schedule data",
+                        "name": "schedule",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ScheduleCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Schedule created successfully",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/common.ResponseNormal"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/models.ScheduleCreate"
                                         }
                                     }
                                 }
@@ -1905,6 +2081,9 @@ const docTemplate = `{
                 "duration": {
                     "type": "integer"
                 },
+                "expert_id": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1920,7 +2099,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "date_of_birth",
-                "email",
+                "expert_type",
                 "full_name"
             ],
             "properties": {
@@ -1933,11 +2112,11 @@ const docTemplate = `{
                 "date_of_birth": {
                     "type": "string"
                 },
-                "email": {
-                    "type": "string"
-                },
                 "expert_id": {
                     "type": "integer"
+                },
+                "expert_type": {
+                    "type": "string"
                 },
                 "full_name": {
                     "type": "string"
@@ -1945,14 +2124,8 @@ const docTemplate = `{
                 "gender": {
                     "type": "boolean"
                 },
-                "is_deleted": {
-                    "type": "boolean"
-                },
                 "telephone_number": {
                     "type": "string"
-                },
-                "verified": {
-                    "type": "boolean"
                 }
             }
         },
@@ -1982,7 +2155,40 @@ const docTemplate = `{
                 "program_id": {
                     "type": "string"
                 },
-                "total_day": {
+                "target_bmi_max": {
+                    "type": "number"
+                },
+                "target_bmi_min": {
+                    "type": "number"
+                },
+                "target_condition_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ScheduleCreate": {
+            "type": "object",
+            "required": [
+                "day_number",
+                "week_number"
+            ],
+            "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "day_number": {
+                    "type": "integer"
+                },
+                "program_id": {
+                    "type": "string"
+                },
+                "repeat_interval": {
+                    "type": "integer"
+                },
+                "schedule_id": {
+                    "type": "string"
+                },
+                "week_number": {
                     "type": "integer"
                 }
             }

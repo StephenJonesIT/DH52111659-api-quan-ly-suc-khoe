@@ -129,6 +129,8 @@ definitions:
         type: string
       duration:
         type: integer
+      expert_id:
+        type: integer
       id:
         type: string
       name:
@@ -144,23 +146,19 @@ definitions:
         type: string
       date_of_birth:
         type: string
-      email:
-        type: string
       expert_id:
         type: integer
+      expert_type:
+        type: string
       full_name:
         type: string
       gender:
         type: boolean
-      is_deleted:
-        type: boolean
       telephone_number:
         type: string
-      verified:
-        type: boolean
     required:
     - date_of_birth
-    - email
+    - expert_type
     - full_name
     type: object
   models.Program:
@@ -177,12 +175,34 @@ definitions:
         type: string
       program_id:
         type: string
-      total_day:
+      target_bmi_max:
+        type: number
+      target_bmi_min:
+        type: number
+      target_condition_id:
         type: integer
     required:
     - description
     - duration_type
     - name
+    type: object
+  models.ScheduleCreate:
+    properties:
+      activity_id:
+        type: string
+      day_number:
+        type: integer
+      program_id:
+        type: string
+      repeat_interval:
+        type: integer
+      schedule_id:
+        type: string
+      week_number:
+        type: integer
+    required:
+    - day_number
+    - week_number
     type: object
 host: 127.0.0.1:9000
 info:
@@ -1065,6 +1085,65 @@ paths:
       tags:
       - Auth
   /expert/activities:
+    get:
+      consumes:
+      - application/json
+      description: Get activities for an expert
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Activities retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Activity'
+                  type: array
+              type: object
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: No activities found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Get activities for an expert
+      tags:
+      - Activity
     post:
       consumes:
       - application/json
@@ -1164,6 +1243,56 @@ paths:
       summary: Create a new program
       tags:
       - Program
+  /expert/programs/{program_id}/schedules:
+    post:
+      consumes:
+      - application/json
+      description: Create a new schedule for a program
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Schedule data
+        in: body
+        name: schedule
+        required: true
+        schema:
+          $ref: '#/definitions/models.ScheduleCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Schedule created successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/common.ResponseNormal'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.ScheduleCreate'
+              type: object
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - BearerAuth: []
+      summary: Create a new schedule
+      tags:
+      - Schedule
   /profile:
     post:
       consumes:

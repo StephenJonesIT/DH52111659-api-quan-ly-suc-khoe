@@ -60,8 +60,12 @@ func main() {
 	activityService := services.NewActivityService(activityRepo, expertRepo)
 	activityHandler := handlers.NewActivityHandler(activityService)
 
+	scheduleRepo := repositories.NewScheduleRepositoryImpl(repositories.DB)
+	scheduleService := services.NewScheduleServiceImpl(scheduleRepo, programRepo, activityRepo)
+	scheduleHandler := handlers.NewScheduleHandler(scheduleService)
+
 	// 5. Đăng ký các route
-	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler, programHandler, activityHandler)
+	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler, programHandler, activityHandler, scheduleHandler)
 
 	// 6. Khởi động server
 	if err := router.Run("0.0.0.0:"+config.AppConfig.GinPort); err != nil {
@@ -77,6 +81,7 @@ func registerRouter(
 	expertHandler *handlers.ExpertHandler,
 	programHandler *handlers.ProgramHandler,
 	activityHandler *handlers.ActivityHandler,
+	scheduleHandler *handlers.ScheduleHandler,
 	) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -159,11 +164,17 @@ func registerRouter(
 			program := expertGroup.Group("/programs")
 			{
 				program.POST("", programHandler.CreateProgramHandler)
+
+				schedule := program.Group("/:program_id/schedules")
+				{
+					schedule.POST("", scheduleHandler.CreateScheduleHandler)
+				}
 			}
 
 			activity := expertGroup.Group("/activities")
 			{
 				activity.POST("", activityHandler.CreateActivityHandler)
+				activity.GET("", activityHandler.GetAtivitiesExpertHandler)
 			}
 		}
 	}

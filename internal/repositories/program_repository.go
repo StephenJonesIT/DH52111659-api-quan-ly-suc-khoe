@@ -4,11 +4,12 @@ import (
 	"DH52111659-api-quan-ly-suc-khoe/internal/models"
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ProgramRepository interface {
-	GetProgramByID(ctx context.Context, cond int)(*models.Program, error)
+	GetProgramByID(ctx context.Context, cond uuid.UUID)(*models.Program, error)
 	Create(ctx context.Context, item *models.Program) (*models.Program, error)
 }
 
@@ -29,7 +30,7 @@ func(r *ProgramRepositoryImpl) Create(ctx context.Context, item *models.Program)
 	return item, nil
 }
 
-func(r *ProgramRepositoryImpl) GetProgramByID(ctx context.Context, cond int)(*models.Program, error){
+func(r *ProgramRepositoryImpl) GetProgramByID(ctx context.Context, cond uuid.UUID)(*models.Program, error){
 	var program models.Program
 	if err := r.DB.WithContext(ctx).
 		Table(models.Program{}.TableName()).
