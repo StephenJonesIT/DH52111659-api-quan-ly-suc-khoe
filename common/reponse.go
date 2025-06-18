@@ -71,3 +71,9 @@ func NewResponsePaging(message string, data interface{}, paging interface{}) *Re
 		Paging:  paging,
 	}
 }
+
+func NewResponseMessage(message string) *ResponseNormal{
+	return &ResponseNormal{
+		Message: message,
+	}
+}

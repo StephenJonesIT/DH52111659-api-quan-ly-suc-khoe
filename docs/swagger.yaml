@@ -82,6 +82,146 @@ definitions:
       result:
         type: boolean
     type: object
+  dtos.CreateActivity:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      point_reward:
+        type: integer
+      repeat_days:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        enum:
+        - Activity
+        - MiniGame
+        - Challenge
+        type: string
+    required:
+    - duration
+    - point_reward
+    - title
+    - type
+    type: object
+  dtos.CreateActivityRequest:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      level_id:
+        type: string
+      point_reward:
+        type: integer
+      repeat_days:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        enum:
+        - Activity
+        - MiniGame
+        - Challenge
+        type: string
+    required:
+    - duration
+    - level_id
+    - point_reward
+    - title
+    - type
+    type: object
+  dtos.CreateLevel:
+    properties:
+      activities:
+        items:
+          $ref: '#/definitions/dtos.CreateActivity'
+        type: array
+      description:
+        type: string
+      name:
+        type: string
+      point_require:
+        type: integer
+    required:
+    - name
+    - point_require
+    type: object
+  dtos.CreateLevelRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      point_require:
+        type: integer
+      program_id:
+        type: string
+    required:
+    - name
+    - point_require
+    - program_id
+    type: object
+  dtos.CreateProgramRequest:
+    properties:
+      desciption:
+        type: string
+      disease_ids:
+        items:
+          type: integer
+        type: array
+      duration:
+        type: integer
+      goal_ids:
+        items:
+          type: integer
+        type: array
+      levels:
+        items:
+          $ref: '#/definitions/dtos.CreateLevel'
+        type: array
+      title:
+        type: string
+    required:
+    - duration
+    - title
+    type: object
+  dtos.UpdateProgramRequest:
+    properties:
+      desciption:
+        type: string
+      disease_ids:
+        items:
+          type: integer
+        type: array
+      duration:
+        type: integer
+      goal_ids:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    required:
+    - duration
+    - title
+    type: object
+  enum.ActivityType:
+    enum:
+    - Activity
+    - MiniGame
+    - Challenge
+    type: string
+    x-enum-varnames:
+    - TypeActivity
+    - TypeMiniGame
+    - TypeChallenge
   models.Account:
     properties:
       account_status:
@@ -125,18 +265,28 @@ definitions:
     type: object
   models.Activity:
     properties:
+      activity_id:
+        type: string
+      created_at:
+        type: string
       description:
         type: string
       duration:
         type: integer
-      expert_id:
-        type: integer
-      id:
+      level_id:
         type: string
-      name:
-        type: string
-      point:
+      point_reward:
         type: integer
+      title:
+        type: string
+      type:
+        $ref: '#/definitions/enum.ActivityType'
+      updated_at:
+        type: string
+    required:
+    - duration
+    - point_reward
+    - title
     type: object
   models.Expert:
     properties:
@@ -147,7 +297,7 @@ definitions:
       date_of_birth:
         type: string
       expert_id:
-        type: integer
+        type: string
       expert_type:
         type: string
       full_name:
@@ -165,44 +315,23 @@ definitions:
     properties:
       created_at:
         type: string
+      created_by:
+        type: string
       description:
         type: string
-      duration_type:
-        type: string
-      expert_id:
+      duration:
         type: integer
-      name:
-        type: string
+      is_active:
+        type: boolean
       program_id:
         type: string
-      target_bmi_max:
-        type: number
-      target_bmi_min:
-        type: number
-      target_condition_id:
-        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
     required:
-    - description
-    - duration_type
-    - name
-    type: object
-  models.ScheduleCreate:
-    properties:
-      activity_id:
-        type: string
-      day_number:
-        type: integer
-      program_id:
-        type: string
-      repeat_interval:
-        type: integer
-      schedule_id:
-        type: string
-      week_number:
-        type: integer
-    required:
-    - day_number
-    - week_number
+    - duration
+    - title
     type: object
 host: 127.0.0.1:9000
 info:
@@ -1147,33 +1276,130 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new activity
+      description: Creates a new activity for a specified level, including repeat
+        days. Requires valid JWT token.
       parameters:
       - description: Bearer token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Activity data
+      - description: Activity details to create
         in: body
         name: activity
         required: true
         schema:
-          $ref: '#/definitions/models.Activity'
+          $ref: '#/definitions/dtos.CreateActivityRequest'
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: Activity created successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: invalid activity data, invalid level ID, invalid activity type,
+            or invalid week day
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: token expired or invalid
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: level not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: failed to create activity
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new activity for a level
+      tags:
+      - Activity
+  /expert/levels:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new level for a specified program owned by the expert.
+        Requires valid JWT token.
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Level details to create
+        in: body
+        name: level
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CreateLevelRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Level created successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: invalid level data or invalid program ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: token expired or invalid
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: program not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: failed to create level
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new level for a program
+      tags:
+      - Level
+  /expert/programs:
+    get:
+      consumes:
+      - application/json
+      description: Get programs by expert ID
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Number of items per page
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Programs retrieved successfully
           schema:
             allOf:
             - $ref: '#/definitions/common.ResponseNormal'
             - properties:
                 data:
-                  $ref: '#/definitions/models.Activity'
+                  items:
+                    $ref: '#/definitions/models.Program'
+                  type: array
               type: object
         "400":
-          description: Invalid request body
+          description: Invalid expert ID format
           schema:
             $ref: '#/definitions/common.ResponseError'
         "401":
@@ -1190,10 +1416,9 @@ paths:
             $ref: '#/definitions/common.ResponseError'
       security:
       - ApiKeyAuth: []
-      summary: Create a new activity
+      summary: Get programs by expert ID
       tags:
-      - Activity
-  /expert/programs:
+      - Program
     post:
       consumes:
       - application/json
@@ -1204,12 +1429,12 @@ paths:
         name: Authorization
         required: true
         type: string
-      - description: Program data
+      - description: Program request data
         in: body
         name: program
         required: true
         schema:
-          $ref: '#/definitions/models.Program'
+          $ref: '#/definitions/dtos.CreateProgramRequest'
       produces:
       - application/json
       responses:
@@ -1243,56 +1468,112 @@ paths:
       summary: Create a new program
       tags:
       - Program
-  /expert/programs/{program_id}/schedules:
-    post:
+  /expert/programs/{program_id}:
+    delete:
       consumes:
       - application/json
-      description: Create a new schedule for a program
+      description: Deletes a program if it has no participants, or deactivates it
+        (sets is_active = false)
       parameters:
+      - description: Program ID (UUID)
+        format: uuid
+        in: path
+        name: program_id
+        required: true
+        type: string
       - description: Bearer token
         in: header
         name: Authorization
         required: true
         type: string
-      - description: Schedule data
-        in: body
-        name: schedule
-        required: true
-        schema:
-          $ref: '#/definitions/models.ScheduleCreate'
       produces:
       - application/json
       responses:
-        "201":
-          description: Schedule created successfully
+        "200":
+          description: Programs retrieved successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: invalid program ID or confirmation required
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: token expired or invalid
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "403":
+          description: 'unauthorized: not program owner'
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: failed to delete program
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete or deactivate a program by ID
+      tags:
+      - Program
+    put:
+      consumes:
+      - application/json
+      description: Updates program details (title, description, duration, disease
+        IDs, goal IDs) for a program owned by the expert. Requires valid JWT token.
+      parameters:
+      - description: Program ID (UUID)
+        format: uuid
+        in: path
+        name: program_id
+        required: true
+        type: string
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Program details to update
+        in: body
+        name: program
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateProgramRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Program updated successfully
           schema:
             allOf:
             - $ref: '#/definitions/common.ResponseNormal'
             - properties:
                 data:
-                  $ref: '#/definitions/models.ScheduleCreate'
+                  type: object
               type: object
         "400":
-          description: Invalid request body
+          description: invalid program ID or invalid program data
           schema:
             $ref: '#/definitions/common.ResponseError'
         "401":
-          description: Unauthorized
+          description: token expired or invalid
           schema:
             $ref: '#/definitions/common.ResponseError'
         "403":
-          description: Forbidden
+          description: 'unauthorized: not program owner'
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: expert not found or program not found
           schema:
             $ref: '#/definitions/common.ResponseError'
         "500":
-          description: Internal server error
+          description: failed to update program
           schema:
             $ref: '#/definitions/common.ResponseError'
       security:
-      - BearerAuth: []
-      summary: Create a new schedule
+      - ApiKeyAuth: []
+      summary: Update a program by ID
       tags:
-      - Schedule
+      - Program
   /profile:
     post:
       consumes:

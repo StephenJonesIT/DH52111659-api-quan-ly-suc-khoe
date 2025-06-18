@@ -1487,7 +1487,7 @@ const docTemplate = `{
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Create a new activity",
+                "description": "Creates a new activity for a specified level, including repeat days. Requires valid JWT token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1497,7 +1497,7 @@ const docTemplate = `{
                 "tags": [
                     "Activity"
                 ],
-                "summary": "Create a new activity",
+                "summary": "Create a new activity for a level",
                 "parameters": [
                     {
                         "type": "string",
@@ -1507,18 +1507,161 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Activity data",
+                        "description": "Activity details to create",
                         "name": "activity",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Activity"
+                            "$ref": "#/definitions/dtos.CreateActivityRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "Activity created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseNormal"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid activity data, invalid level ID, invalid activity type, or invalid week day",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "token expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "level not found",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to create activity",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/expert/levels": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Creates a new level for a specified program owned by the expert. Requires valid JWT token.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Level"
+                ],
+                "summary": "Create a new level for a program",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Level details to create",
+                        "name": "level",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CreateLevelRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Level created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseNormal"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid level data or invalid program ID",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "token expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "program not found",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to create level",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            }
+        },
+        "/expert/programs": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get programs by expert ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Program"
+                ],
+                "summary": "Get programs by expert ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items per page",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Programs retrieved successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -1528,7 +1671,10 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.Activity"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Program"
+                                            }
                                         }
                                     }
                                 }
@@ -1536,7 +1682,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request body",
+                        "description": "Invalid expert ID format",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
@@ -1560,9 +1706,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/expert/programs": {
+            },
             "post": {
                 "security": [
                     {
@@ -1589,12 +1733,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Program data",
+                        "description": "Program request data",
                         "name": "program",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Program"
+                            "$ref": "#/definitions/dtos.CreateProgramRequest"
                         }
                     }
                 ],
@@ -1644,14 +1788,14 @@ const docTemplate = `{
                 }
             }
         },
-        "/expert/programs/{program_id}/schedules": {
-            "post": {
+        "/expert/programs/{program_id}": {
+            "put": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "ApiKeyAuth": []
                     }
                 ],
-                "description": "Create a new schedule for a program",
+                "description": "Updates program details (title, description, duration, disease IDs, goal IDs) for a program owned by the expert. Requires valid JWT token.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1659,10 +1803,18 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Schedule"
+                    "Program"
                 ],
-                "summary": "Create a new schedule",
+                "summary": "Update a program by ID",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Program ID (UUID)",
+                        "name": "program_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "string",
                         "description": "Bearer token",
@@ -1671,18 +1823,18 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "Schedule data",
-                        "name": "schedule",
+                        "description": "Program details to update",
+                        "name": "program",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.ScheduleCreate"
+                            "$ref": "#/definitions/dtos.UpdateProgramRequest"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Schedule created successfully",
+                    "200": {
+                        "description": "Program updated successfully",
                         "schema": {
                             "allOf": [
                                 {
@@ -1692,7 +1844,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/models.ScheduleCreate"
+                                            "type": "object"
                                         }
                                     }
                                 }
@@ -1700,25 +1852,98 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request body",
+                        "description": "invalid program ID or invalid program data",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
                     },
                     "401": {
-                        "description": "Unauthorized",
+                        "description": "token expired or invalid",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "unauthorized: not program owner",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "404": {
+                        "description": "expert not found or program not found",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
                     },
                     "500": {
-                        "description": "Internal server error",
+                        "description": "failed to update program",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deletes a program if it has no participants, or deactivates it (sets is_active = false)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Program"
+                ],
+                "summary": "Delete or deactivate a program by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Program ID (UUID)",
+                        "name": "program_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Programs retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseNormal"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid program ID or confirmation required",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "401": {
+                        "description": "token expired or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "403": {
+                        "description": "unauthorized: not program owner",
+                        "schema": {
+                            "$ref": "#/definitions/common.ResponseError"
+                        }
+                    },
+                    "500": {
+                        "description": "failed to delete program",
                         "schema": {
                             "$ref": "#/definitions/common.ResponseError"
                         }
@@ -2013,6 +2238,209 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.CreateActivity": {
+            "type": "object",
+            "required": [
+                "duration",
+                "point_reward",
+                "title",
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "point_reward": {
+                    "type": "integer"
+                },
+                "repeat_days": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "Activity",
+                        "MiniGame",
+                        "Challenge"
+                    ]
+                }
+            }
+        },
+        "dtos.CreateActivityRequest": {
+            "type": "object",
+            "required": [
+                "duration",
+                "level_id",
+                "point_reward",
+                "title",
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "level_id": {
+                    "type": "string"
+                },
+                "point_reward": {
+                    "type": "integer"
+                },
+                "repeat_days": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "Activity",
+                        "MiniGame",
+                        "Challenge"
+                    ]
+                }
+            }
+        },
+        "dtos.CreateLevel": {
+            "type": "object",
+            "required": [
+                "name",
+                "point_require"
+            ],
+            "properties": {
+                "activities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.CreateActivity"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point_require": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dtos.CreateLevelRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "point_require",
+                "program_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "point_require": {
+                    "type": "integer"
+                },
+                "program_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.CreateProgramRequest": {
+            "type": "object",
+            "required": [
+                "duration",
+                "title"
+            ],
+            "properties": {
+                "desciption": {
+                    "type": "string"
+                },
+                "disease_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "goal_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "levels": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.CreateLevel"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.UpdateProgramRequest": {
+            "type": "object",
+            "required": [
+                "duration",
+                "title"
+            ],
+            "properties": {
+                "desciption": {
+                    "type": "string"
+                },
+                "disease_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "goal_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "enum.ActivityType": {
+            "type": "string",
+            "enum": [
+                "Activity",
+                "MiniGame",
+                "Challenge"
+            ],
+            "x-enum-varnames": [
+                "TypeActivity",
+                "TypeMiniGame",
+                "TypeChallenge"
+            ]
+        },
         "models.Account": {
             "type": "object",
             "required": [
@@ -2074,24 +2502,38 @@ const docTemplate = `{
         },
         "models.Activity": {
             "type": "object",
+            "required": [
+                "duration",
+                "point_reward",
+                "title"
+            ],
             "properties": {
+                "activity_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
                 "duration": {
                     "type": "integer"
                 },
-                "expert_id": {
-                    "type": "integer"
-                },
-                "id": {
+                "level_id": {
                     "type": "string"
                 },
-                "name": {
+                "point_reward": {
+                    "type": "integer"
+                },
+                "title": {
                     "type": "string"
                 },
-                "point": {
-                    "type": "integer"
+                "type": {
+                    "$ref": "#/definitions/enum.ActivityType"
+                },
+                "updated_at": {
+                    "type": "string"
                 }
             }
         },
@@ -2113,7 +2555,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expert_id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "expert_type": {
                     "type": "string"
@@ -2132,64 +2574,33 @@ const docTemplate = `{
         "models.Program": {
             "type": "object",
             "required": [
-                "description",
-                "duration_type",
-                "name"
+                "duration",
+                "title"
             ],
             "properties": {
                 "created_at": {
                     "type": "string"
                 },
+                "created_by": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
-                "duration_type": {
-                    "type": "string"
-                },
-                "expert_id": {
+                "duration": {
                     "type": "integer"
                 },
-                "name": {
-                    "type": "string"
+                "is_active": {
+                    "type": "boolean"
                 },
                 "program_id": {
                     "type": "string"
                 },
-                "target_bmi_max": {
-                    "type": "number"
-                },
-                "target_bmi_min": {
-                    "type": "number"
-                },
-                "target_condition_id": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.ScheduleCreate": {
-            "type": "object",
-            "required": [
-                "day_number",
-                "week_number"
-            ],
-            "properties": {
-                "activity_id": {
+                "title": {
                     "type": "string"
                 },
-                "day_number": {
-                    "type": "integer"
-                },
-                "program_id": {
+                "updated_at": {
                     "type": "string"
-                },
-                "repeat_interval": {
-                    "type": "integer"
-                },
-                "schedule_id": {
-                    "type": "string"
-                },
-                "week_number": {
-                    "type": "integer"
                 }
             }
         }

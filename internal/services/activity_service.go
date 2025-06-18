@@ -2,8 +2,10 @@ package services
 
 import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
-	"DH52111659-api-quan-ly-suc-khoe/internal/models"
-	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
+	dtos "DH52111659-api-quan-ly-suc-khoe/internal/data/DTOs"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/enum"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/models"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/repositories"
 	"context"
 	"fmt"
 
@@ -11,48 +13,97 @@ import (
 )
 
 type ActivityService interface {
-	CreateActivity(ctx context.Context, cond uuid.UUID, activity *models.Activity) (*models.Activity, error)
+	CreateActivity(ctx context.Context, req *dtos.CreateActivityRequest) (*models.Activity, error)
 	GetActivities(ctx context.Context, expertID uuid.UUID, paging *common.Paging) ([]*models.Activity, error)
 }
 
 type ActivityServiceImpl struct {
-	activityRepository repositories.ActivityRepository
-	expertRepository   repositories.ExpertRepository
+	activityRepo repositories.ActivityRepository
+	levelRepo repositories.LevelRepository
+	repeatDayRepo repositories.ActivityRepeatDayRepository
 }
 
-func NewActivityService(activityRepository repositories.ActivityRepository, expertRepository repositories.ExpertRepository) *ActivityServiceImpl {
+func NewActivityService(
+	activityRepository repositories.ActivityRepository, 
+	levelRepo repositories.LevelRepository,
+	repeatDayRepo repositories.ActivityRepeatDayRepository) ActivityService {
 	return &ActivityServiceImpl{
-		activityRepository: activityRepository,
-		expertRepository:   expertRepository,
+		activityRepo: activityRepository,
+		levelRepo: levelRepo,
+		repeatDayRepo: repeatDayRepo,
 	}
 }
 
-func (s *ActivityServiceImpl) CreateActivity(ctx context.Context, cond uuid.UUID, activity *models.Activity) (*models.Activity, error) {
-	if activity == nil {
-		return nil, fmt.Errorf("activity cannot be nil")
-	}
-
-	// Check if the expert exists
-	expert, err := s.expertRepository.GetExpertByUserID(ctx, cond)
-
+func (s *ActivityServiceImpl) CreateActivity(ctx context.Context, req *dtos.CreateActivityRequest) (*models.Activity, error) {
+	levelID, err := uuid.Parse(req.LevelID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse level id")
 	}
 
-	if expert == nil {
-		return nil, fmt.Errorf("expert not found for user ID: %s", cond)
-	}
-
-	// Set the ExpertID in the Activity model
-	activity.ExpertID = expert.ExpertID
-
-	// Call the repository to create the activity
-	createdActivity, err := s.activityRepository.CreateActivity(ctx, activity)
+	//Check level exists
+	levelExists, err := s.levelRepo.FindLevelByID(ctx, levelID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find level")
 	}
 
-	return createdActivity, nil
+	if levelExists == nil {
+		return nil, fmt.Errorf("level not found")
+	}
+
+	tx, err := s.activityRepo.BeginTx(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to start transaction")
+	}
+
+	//Insert activity
+	activityID := uuid.New()
+
+	activityType, err := enum.ParseStr2ActivityType(req.Type)
+	if err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("invalid activity type: %v", err)
+	} 
+
+	activity := &models.Activity{
+		LevelID: levelExists.LevelID,
+		ActivityID: activityID,
+		Title: req.Title,
+		Description: req.Description,
+		Duration: req.Duration,
+		PointReward: req.PointReward,
+		Type: activityType,
+	}
+
+	if err := s.activityRepo.InsertActivity(ctx, tx, activity); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create activity")
+	}
+
+	//Insert repeat day for activity
+	var repeatDays []models.ActivityRepeatDay
+	for _, value := range req.RepeatDays {
+		day, err := enum.ParseStr2WeekDay(value)
+		if err != nil {
+			tx.Rollback()
+			return nil, fmt.Errorf("invalid week day: %v", err)
+		}
+
+		repeatDays = append(repeatDays, models.ActivityRepeatDay{
+			ActivityID: activityID,
+			Repeat: day,
+		})
+	}
+
+	if err := s.repeatDayRepo.InsertRepeatDay(ctx, tx, &repeatDays); err != nil {
+		tx.Rollback()
+		return nil, fmt.Errorf("failed to create repeat day")
+	}
+
+	if err := tx.Commit().Error; err != nil{
+		return nil, fmt.Errorf("failed to commit transaction")
+	}
+
+	return activity, nil
 }
 
 func (s *ActivityServiceImpl) GetActivities(
@@ -60,27 +111,5 @@ func (s *ActivityServiceImpl) GetActivities(
 	expertID uuid.UUID,
 	paging *common.Paging,
 ) ([]*models.Activity, error){
-	paging.ProcessPaging()
-
-	expert, err := s.expertRepository.GetExpertByUserID(ctx, expertID)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving expert: %w", err)
-	}
-
-	if expert == nil {
-		return nil, fmt.Errorf("expert not found for user ID: %s", expertID)
-	}
-
-	cond := map[string]interface{}{
-		"expert_id": expert.ExpertID,
-	}
-	
-	activities, err := s.activityRepository.GetActivities(ctx, cond, paging)
-	if err != nil {
-		return nil, err
-	}
-	if len(activities) == 0 {
-		return nil, fmt.Errorf("no activities found")
-	}
-	return activities, nil
+	return nil, nil
 }

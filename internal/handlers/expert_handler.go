@@ -3,7 +3,7 @@ package handlers
 import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
 	"DH52111659-api-quan-ly-suc-khoe/config"
-	"DH52111659-api-quan-ly-suc-khoe/internal/models"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/models"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
 	"DH52111659-api-quan-ly-suc-khoe/utils"
 	"log"

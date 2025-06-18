@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"DH52111659-api-quan-ly-suc-khoe/internal/models"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/models"
 	"sync"
 	"time"
 

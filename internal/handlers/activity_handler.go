@@ -2,8 +2,9 @@ package handlers
 
 import (
 	"DH52111659-api-quan-ly-suc-khoe/common"
-	"DH52111659-api-quan-ly-suc-khoe/internal/models"
+	dtos "DH52111659-api-quan-ly-suc-khoe/internal/data/DTOs"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,48 +22,49 @@ func NewActivityHandler(service services.ActivityService) *ActivityHandler {
 }
 
 // CreateActivityHandler godoc
-// @Summary Create a new activity
-// @Description Create a new activity
+// @Summary Create a new activity for a level
+// @Description Creates a new activity for a specified level, including repeat days. Requires valid JWT token.
 // @Tags Activity
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
 // @Param Authorization header string true "Bearer token"
-// @Param activity body models.Activity true "Activity data"
-// @Success 201 {object} common.ResponseNormal{data=models.Activity} "Activity created successfully"
-// @Failure 400 {object} common.ResponseError "Invalid request body"
-// @Failure 401 {object} common.ResponseError "Unauthorized"
-// @Failure 403 {object} common.ResponseError "Forbidden"
-// @Failure 500 {object} common.ResponseError "Internal server error"
+// @Param activity body dtos.CreateActivityRequest true "Activity details to create"
+// @Success 200 {object} common.ResponseNormal{} "Activity created successfully"
+// @Failure 400 {object} common.ResponseError "invalid activity data, invalid level ID, invalid activity type, or invalid week day"
+// @Failure 401 {object} common.ResponseError "token expired or invalid"
+// @Failure 404 {object} common.ResponseError "level not found"
+// @Failure 500 {object} common.ResponseError "failed to create activity"
 // @Router /expert/activities [post]
-func(h *ActivityHandler) CreateActivityHandler(ctx *gin.Context){
-	var activityRequest models.Activity
-
-	if err := ctx.ShouldBindJSON(&activityRequest); err != nil {
-		ctx.JSON(http.StatusBadRequest, common.NewResponseError(common.ErrBadRequestShouldBind))
-	}
-
-	userID, exists := ctx.Get("userID")
-	if !exists {
-		ctx.JSON(http.StatusUnauthorized, common.NewResponseError("User ID not found in context"))
+func (h *ActivityHandler) CreateActivityHandler(ctx *gin.Context) {
+	// Bind JSON body vào CreateActivityRequest
+	var req *dtos.CreateActivityRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(fmt.Sprintf("invalid activity data: %v", err)))
 		return
 	}
 
-	// Kiểm tra kiểu dữ liệu trước khi ép kiểu
-	uuidValue, ok := uuid.Parse(userID.(string))
-	if ok != nil {
-		// Nếu không thể ép kiểu, trả về lỗi
-		ctx.JSON(http.StatusInternalServerError, common.NewResponseError("Invalid user ID format"))
-		return
-	}
-	
-	actitity, err := h.service.CreateActivity(ctx, uuidValue,&activityRequest);
+	// Gọi service
+	createdActivity, err := h.service.CreateActivity(ctx, req)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, common.NewResponseError(err.Error()))
+		switch err.Error() {
+		case "level not found":
+			ctx.JSON(http.StatusNotFound, common.NewResponseError("level not found"))
+		case "failed to parse level id":
+			ctx.JSON(http.StatusBadRequest, common.NewResponseError("invalid level ID"))
+		case "failed to start transaction":
+			ctx.JSON(http.StatusInternalServerError, common.NewResponseError("failed to start transaction"))
+		default:
+			if err.Error()[0:19] == "invalid activity type" || err.Error()[0:15] == "invalid week day" {
+				ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+			} else {
+				ctx.JSON(http.StatusInternalServerError, common.NewResponseError(fmt.Sprintf("failed to create activity: %v", err)))
+			}
+		}
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, common.NewResponseNormal("Created a new activity successfully",actitity))
+	ctx.JSON(http.StatusOK, common.NewResponseNormal("activity created successfully", createdActivity))
 }
 
 // GetAtivitiesExpertHandler godoc

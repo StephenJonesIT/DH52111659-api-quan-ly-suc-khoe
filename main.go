@@ -3,12 +3,12 @@ package main
 import (
 	"DH52111659-api-quan-ly-suc-khoe/config"
 	_ "DH52111659-api-quan-ly-suc-khoe/docs"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/repositories"
 	"DH52111659-api-quan-ly-suc-khoe/internal/handlers"
 	"DH52111659-api-quan-ly-suc-khoe/internal/middleware"
-	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
 	"DH52111659-api-quan-ly-suc-khoe/internal/services"
 	"DH52111659-api-quan-ly-suc-khoe/utils"
- 	"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -19,9 +19,9 @@ import (
 //	@description	List APIs of Healthy Management Service
 //	@termsOfService	http://swagger.io/terms/
 
-//	@host		127.0.0.1:9000
-//	@BasePath	/api/v1
-//	@schemes	http https
+// @host		127.0.0.1:9000
+// @BasePath	/api/v1
+// @schemes	http https
 func main() {
 	config.LoadConfig()
 	repositories.ConnectDB()
@@ -29,11 +29,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	// 3. Khởi tạo router
 	gin.SetMode(gin.DebugMode)
 	router := gin.Default()
-	router.Use(gin.Logger()) // Log requests
+	router.Use(gin.Logger())   // Log requests
 	router.Use(gin.Recovery()) // Recover from panics and log them
 
 	// 4. Khởi tạo các service và handler
@@ -53,46 +53,60 @@ func main() {
 	expertHandler := handlers.NewExpertHandler(expertService)
 
 	programRepo := repositories.NewProgramRepository(repositories.DB)
-	programService := services.NewProgramService(programRepo, expertRepo)
-	programHandler := handlers.NewProgramHandler(programService)
+	levelRepo := repositories.NewLevelRepository(repositories.DB)
+	activityRepo := repositories.NewActivityRepository(repositories.DB)
+	repeatDayRepo := repositories.NewActivityRepeatDayRepositor(repositories.DB)
+	programDiseaseRepo := repositories.NewProgramDiseaseRepository(repositories.DB)
+	programGoalRepo := repositories.NewProgramGoalRepository(repositories.DB)
+	userProgramRepo := repositories.NewUserProgramRepository(repositories.DB)
 
-	activityRepo := repositories.NewActivityRepositoryImpl(repositories.DB)
-	activityService := services.NewActivityService(activityRepo, expertRepo)
+	levelService := services.NewLevelService(programRepo, levelRepo)
+	levelHandler := handlers.NewLevelHandler(levelService)
+
+	activityService := services.NewActivityService(activityRepo, levelRepo, repeatDayRepo)
 	activityHandler := handlers.NewActivityHandler(activityService)
 
-	scheduleRepo := repositories.NewScheduleRepositoryImpl(repositories.DB)
-	scheduleService := services.NewScheduleServiceImpl(scheduleRepo, programRepo, activityRepo)
-	scheduleHandler := handlers.NewScheduleHandler(scheduleService)
+	
+	programService := services.NewProgramService(
+		programRepo,
+		expertRepo,
+		levelRepo,
+		activityRepo,
+		repeatDayRepo,
+		programDiseaseRepo,
+		programGoalRepo,
+		userProgramRepo,
+	)
+	programHandler := handlers.NewProgramHandler(programService)
 
 	// 5. Đăng ký các route
-	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler, programHandler, activityHandler, scheduleHandler)
+	registerRouter(router, authHandler, profileHandler, userHandler, expertHandler, programHandler,levelHandler, activityHandler)
 
 	// 6. Khởi động server
-	if err := router.Run("0.0.0.0:"+config.AppConfig.GinPort); err != nil {
+	if err := router.Run("0.0.0.0:" + config.AppConfig.GinPort); err != nil {
 		panic(err)
 	}
 }
 
 func registerRouter(
-	router *gin.Engine, 
+	router *gin.Engine,
 	accountHandler *handlers.AuthHandler,
 	profileHandler *handlers.ProfileHandler,
 	userHandler *handlers.UserHandler,
 	expertHandler *handlers.ExpertHandler,
 	programHandler *handlers.ProgramHandler,
+	levelHandler *handlers.LevelHandler,
 	activityHandler *handlers.ActivityHandler,
-	scheduleHandler *handlers.ScheduleHandler,
-	) {
+) {
 	// Tạo một nhóm router cho API
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.Use(cors.New(cors.Config{
-        AllowOrigins:     []string{"*"}, // Change "*" to specific domains for security
-        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-        AllowCredentials: true,
-    }))
-
+		AllowOrigins:     []string{"*"}, // Change "*" to specific domains for security
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	api := router.Group("/api/v1")
 	{
@@ -110,12 +124,12 @@ func registerRouter(
 				public.POST("/password/verify-otp", accountHandler.VerifyOTPHandler)
 				public.POST("/password/reset", accountHandler.ResetPasswordHandler)
 			}
-	
+
 			protected := authGroup.Group("")
 			{
 				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
 				protected.POST("/password/change", accountHandler.ChangePasswordHandler)
-			}		
+			}
 		}
 
 		profileGroup := api.Group("/profile")
@@ -123,7 +137,7 @@ func registerRouter(
 			protected := profileGroup.Group("")
 			{
 				protected.Use(middleware.JWTAuthMiddleware(*utils.NewTokenService(config.AppConfig.SECRET_KEY)))
-				protected.POST("",profileHandler.CreateProfileHandler)
+				protected.POST("", profileHandler.CreateProfileHandler)
 				protected.PUT("/:id", profileHandler.UpdateProfileHandler)
 			}
 		}
@@ -143,11 +157,11 @@ func registerRouter(
 
 			expertGroup := adminGroup.Group("experts")
 			{
-				expertGroup.POST("",expertHandler.CreateExpertHandler)
+				expertGroup.POST("", expertHandler.CreateExpertHandler)
 				expertGroup.GET("", expertHandler.GetExpertsHandler)
 				expertGroup.PUT("/:id", expertHandler.UpdateExpertHandler)
 				expertGroup.DELETE("/:id", expertHandler.DeleteExpertHandler)
-				
+
 				accountGroup := expertGroup.Group("/accounts")
 				{
 					accountGroup.POST("", userHandler.CreateExpertAccountHandler)
@@ -164,17 +178,19 @@ func registerRouter(
 			program := expertGroup.Group("/programs")
 			{
 				program.POST("", programHandler.CreateProgramHandler)
+				program.GET("", programHandler.GetProgramsByExpertIDHandler)
+				program.DELETE("/:program_id", programHandler.DeleteProgramHandler)
+				program.PUT("/:program_id", programHandler.UpdateProgramHandler)
+			}
 
-				schedule := program.Group("/:program_id/schedules")
-				{
-					schedule.POST("", scheduleHandler.CreateScheduleHandler)
-				}
+			level := expertGroup.Group("/levels")
+			{
+				level.POST("", levelHandler.CreateLevelHandler)
 			}
 
 			activity := expertGroup.Group("/activities")
 			{
 				activity.POST("", activityHandler.CreateActivityHandler)
-				activity.GET("", activityHandler.GetAtivitiesExpertHandler)
 			}
 		}
 	}

@@ -1,8 +1,8 @@
 package services
 
 import (
-	"DH52111659-api-quan-ly-suc-khoe/internal/models"
-	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/models"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/repositories"
 	"context"
 	"fmt"
 )

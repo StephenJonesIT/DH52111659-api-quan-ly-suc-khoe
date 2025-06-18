@@ -2,7 +2,7 @@ package services
 
 import (
 	"DH52111659-api-quan-ly-suc-khoe/config"
-	"DH52111659-api-quan-ly-suc-khoe/internal/repositories"
+	"DH52111659-api-quan-ly-suc-khoe/internal/data/repositories"
 	"context"
 	"fmt"
 	"math/rand"
