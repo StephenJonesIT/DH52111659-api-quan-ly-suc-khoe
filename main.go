@@ -52,6 +52,7 @@ func main() {
 	expertService := services.NewExpertService(expertRepo, accountRepo)
 	expertHandler := handlers.NewExpertHandler(expertService)
 
+	userActivityRepo := repositories.NewUserActivityRepository(repositories.DB)
 	programRepo := repositories.NewProgramRepository(repositories.DB)
 	levelRepo := repositories.NewLevelRepository(repositories.DB)
 	activityRepo := repositories.NewActivityRepository(repositories.DB)
@@ -63,7 +64,7 @@ func main() {
 	levelService := services.NewLevelService(programRepo, levelRepo)
 	levelHandler := handlers.NewLevelHandler(levelService)
 
-	activityService := services.NewActivityService(activityRepo, levelRepo, repeatDayRepo)
+	activityService := services.NewActivityService(activityRepo, levelRepo, repeatDayRepo, userActivityRepo)
 	activityHandler := handlers.NewActivityHandler(activityService)
 
 	
@@ -191,6 +192,8 @@ func registerRouter(
 			activity := expertGroup.Group("/activities")
 			{
 				activity.POST("", activityHandler.CreateActivityHandler)
+				activity.PUT("/:activity_id",activityHandler.UpdateActivityHandler)
+				activity.DELETE("/:activity_id",activityHandler.DeleteActivityHandler)
 			}
 		}
 	}

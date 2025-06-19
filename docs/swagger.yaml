@@ -192,6 +192,32 @@ definitions:
     - duration
     - title
     type: object
+  dtos.UpdateActivityRequest:
+    properties:
+      description:
+        type: string
+      duration:
+        type: integer
+      point_reward:
+        type: integer
+      repeat_days:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      type:
+        enum:
+        - Activity
+        - MiniGame
+        - Challenge
+        type: string
+    required:
+    - duration
+    - point_reward
+    - title
+    - type
+    type: object
   dtos.UpdateProgramRequest:
     properties:
       desciption:
@@ -1317,6 +1343,104 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Create a new activity for a level
+      tags:
+      - Activity
+  /expert/activities/{activity_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes an activity if it has no participants, or deactivates it
+        if it has participants. Requires valid JWT token.
+      parameters:
+      - description: Activity ID (UUID)
+        format: uuid
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Activity deleted or deactivated successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: invalid activity ID
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: token expired or invalid
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: activity not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: failed to delete or deactivate activity
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete or deactivate an activity by ID
+      tags:
+      - Activity
+    put:
+      consumes:
+      - application/json
+      description: Updates activity details (title, description, duration, point reward,
+        type, repeat days) for a specified activity. Requires valid JWT token.
+      parameters:
+      - description: Activity ID (UUID)
+        format: uuid
+        in: path
+        name: activity_id
+        required: true
+        type: string
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Activity details to update
+        in: body
+        name: activity
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UpdateActivityRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Activity updated successfully
+          schema:
+            $ref: '#/definitions/common.ResponseNormal'
+        "400":
+          description: invalid activity ID, invalid activity data, invalid activity
+            type, or invalid repeat day
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "401":
+          description: token expired or invalid
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "404":
+          description: activity not found
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+        "500":
+          description: failed to update activity
+          schema:
+            $ref: '#/definitions/common.ResponseError'
+      security:
+      - ApiKeyAuth: []
+      summary: Update an activity by ID
       tags:
       - Activity
   /expert/levels:

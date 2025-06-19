@@ -15,7 +15,7 @@ type Activity struct {
 	Description string     			`gorm:"column:description;type:text" json:"description,omitempty"`
 	Duration    int       			`gorm:"column:duration;not null" json:"duration" validate:"required"`
 	PointReward int        			`gorm:"column:point_reward;not null" json:"point_reward" validate:"required"`
-	Type	    enum.ActivityType 	`gorm:"column:type;default:Activity" json:"type"`	
+	Type	    enum.ActivityType 	`gorm:"column:type;default:Activity" json:"type"`
 	CreatedAt   *time.Time 			`gorm:"column:created_at" json:"created_at,omitempty"`
 	UpdatedAt   *time.Time 			`gorm:"column:updated_at" json:"updated_at,omitempty"`	
 }
@@ -40,4 +40,22 @@ func (a *Activity) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	return nil
+}
+
+func(a *Activity) BeforeUpdate(tx *gorm.DB) error {
+	now := time.Now()
+	a.UpdatedAt = &now
+	return nil
+}
+
+
+type UserActivity struct{
+	ID 				uuid.UUID 	`gorm:"column:id;primaryKey" json:"id"`
+	UserProgramID	int32		`gorm:"column:user_program_id;not null" json:"user_program_id"`
+	ActivityID		uuid.UUID	`gotm:"column:activity_id;not null" json:"activity_id"`
+
+}
+
+func(UserActivity) TableName() string{
+	return "user_activities"
 }

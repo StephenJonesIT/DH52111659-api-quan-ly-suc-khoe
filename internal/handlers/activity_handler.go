@@ -117,3 +117,102 @@ func(h *ActivityHandler) GetAtivitiesExpertHandler(ctx *gin.Context){
 
 	ctx.JSON(http.StatusOK, common.NewResponsePaging("Get activities successfully", activities, paging))
 }
+
+// UpdateActivityHandler godoc
+// @Summary Update an activity by ID
+// @Description Updates activity details (title, description, duration, point reward, type, repeat days) for a specified activity. Requires valid JWT token.
+// @Tags Activity
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param activity_id path string true "Activity ID (UUID)" Format(uuid)
+// @Param Authorization header string true "Bearer token"
+// @Param activity body dtos.UpdateActivityRequest true "Activity details to update"
+// @Success 200 {object} common.ResponseNormal{} "Activity updated successfully"
+// @Failure 400 {object} common.ResponseError "invalid activity ID, invalid activity data, invalid activity type, or invalid repeat day"
+// @Failure 401 {object} common.ResponseError "token expired or invalid"
+// @Failure 404 {object} common.ResponseError "activity not found"
+// @Failure 500 {object} common.ResponseError "failed to update activity"
+// @Router /expert/activities/{activity_id} [put]
+func (h *ActivityHandler) UpdateActivityHandler(ctx *gin.Context) {
+	// Lấy activityID từ URL
+	activityIDStr := ctx.Param("activity_id")
+	activityID, err := uuid.Parse(activityIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError("invalid activity ID"))
+		return
+	}
+
+	// Bind JSON body vào UpdateActivityRequest
+	var req dtos.UpdateActivityRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError(fmt.Sprintf("invalid activity data: %v", err)))
+		return
+	}
+
+	// Gọi service
+	updatedActivity, err := h.service.UpdateActivity(ctx, activityID.String(), &req)
+	if err != nil {
+		switch err.Error() {
+		case "activity not found":
+			ctx.JSON(http.StatusNotFound, common.NewResponseError("activity not found"))
+		case "failed to parse uuid activity id":
+			ctx.JSON(http.StatusBadRequest, common.NewResponseError("invalid activity ID"))
+		case "failed to start transaction":
+			ctx.JSON(http.StatusInternalServerError, common.NewResponseError("failed to start transaction"))
+		default:
+			if err.Error()[0:19] == "invalid activity type" || err.Error()[0:20] == "faild to parse repeat day" {
+				ctx.JSON(http.StatusBadRequest, common.NewResponseError(err.Error()))
+			} else {
+				ctx.JSON(http.StatusInternalServerError, common.NewResponseError(fmt.Sprintf("failed to update activity: %v", err)))
+			}
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseNormal("activity updated successfully", updatedActivity))
+}
+
+// DeleteActivityHandler godoc
+// @Summary Delete or deactivate an activity by ID
+// @Description Deletes an activity if it has no participants, or deactivates it if it has participants. Requires valid JWT token.
+// @Tags Activity
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param activity_id path string true "Activity ID (UUID)" Format(uuid)
+// @Param Authorization header string true "Bearer token"
+// @Success 200 {object} common.ResponseNormal{} "Activity deleted or deactivated successfully"
+// @Failure 400 {object} common.ResponseError "invalid activity ID"
+// @Failure 401 {object} common.ResponseError "token expired or invalid"
+// @Failure 404 {object} common.ResponseError "activity not found"
+// @Failure 500 {object} common.ResponseError "failed to delete or deactivate activity"
+// @Router /expert/activities/{activity_id} [delete]
+func (h *ActivityHandler) DeleteActivityHandler(ctx *gin.Context) {
+
+	// Lấy activityID từ URL
+	activityIDStr := ctx.Param("activity_id")
+	activityID, err := uuid.Parse(activityIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, common.NewResponseError("invalid activity ID"))
+		return
+	}
+
+	// Gọi service
+	err = h.service.DeleteActivity(ctx, activityID.String())
+	if err != nil {
+		switch err.Error() {
+		case "activity not found":
+			ctx.JSON(http.StatusNotFound, common.NewResponseError("activity not found"))
+		case "failed to parse uuid activity id":
+			ctx.JSON(http.StatusBadRequest, common.NewResponseError("invalid activity ID"))
+		case "failed to start transaction":
+			ctx.JSON(http.StatusInternalServerError, common.NewResponseError("failed to start transaction"))
+		default:
+			ctx.JSON(http.StatusInternalServerError, common.NewResponseError(fmt.Sprintf("failed to delete or deactivate activity: %v", err)))
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, common.NewResponseMessage("activity deleted or deactivated successfully"))
+}
